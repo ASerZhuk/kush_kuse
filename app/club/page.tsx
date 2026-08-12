@@ -57,6 +57,7 @@ export default async function Club({
                   <Image
                     src={story.photo}
                     alt=""
+                    sizes="56px"
                     className="h-14 w-14 rounded-full object-cover"
                   />
                 </div>
@@ -75,6 +76,8 @@ export default async function Club({
             <Image
               src={catPhoto}
               alt={petName}
+              sizes="120px"
+              priority
               className="h-full w-full origin-[50%_18%] scale-180 object-cover object-top"
             />
           </div>
