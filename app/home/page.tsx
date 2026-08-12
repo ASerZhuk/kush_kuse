@@ -31,7 +31,7 @@ const TABS = [
   { icon: userIcon, label: "Профиль" },
 ];
 
-export default async function Club({
+export default async function Home({
   searchParams,
 }: {
   searchParams: Promise<{ name?: string }>;
@@ -177,7 +177,7 @@ export default async function Club({
         </div>
       </div>
 
-      <nav className="bg-gradient-tabs fixed inset-x-4 bottom-[calc(8px+env(safe-area-inset-bottom))] mx-auto flex max-w-100 items-center justify-between gap-2 rounded-full p-2 shadow-tabs backdrop-blur-md">
+      <nav className="bg-gradient-tabs fixed inset-x-4 bottom-[calc(8px+env(safe-area-inset-bottom))] mx-auto flex max-w-89.5 items-center justify-between gap-2 rounded-full p-2 shadow-tabs backdrop-blur-md">
         {TABS.map((tab, index) => (
           <button
             key={tab.label}

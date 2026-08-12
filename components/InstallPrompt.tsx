@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { usePathname } from "next/navigation";
 import Image from "next/image";
 import closeIcon from "@/app/assets/close.svg";
 
@@ -10,14 +11,21 @@ type BeforeInstallPromptEvent = Event & {
 };
 
 const DISMISSED_KEY = "pwa-install-dismissed";
+const ALLOWED_PATHS = ["/", "/home"];
 
 export default function InstallPrompt() {
+  const pathname = usePathname();
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
   const [visible, setVisible] = useState(false);
 
   useEffect(() => {
+    if (!ALLOWED_PATHS.includes(pathname)) {
+      setVisible(false);
+      return;
+    }
+
     const isStandalone =
       window.matchMedia("(display-mode: standalone)").matches ||
       (window.navigator as { standalone?: boolean }).standalone === true;
@@ -42,7 +50,7 @@ export default function InstallPrompt() {
         "beforeinstallprompt",
         onBeforeInstallPrompt,
       );
-  }, []);
+  }, [pathname]);
 
   const dismiss = () => {
     sessionStorage.setItem(DISMISSED_KEY, "1");
@@ -60,7 +68,7 @@ export default function InstallPrompt() {
   if (!visible) return null;
 
   return (
-    <div className="fixed inset-x-4 bottom-[calc(88px+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-100 items-center gap-3 rounded-3xl bg-white p-4 shadow-tabs backdrop-blur-md">
+    <div className="fixed inset-x-4 bottom-[calc(88px+env(safe-area-inset-bottom))] z-50 mx-auto flex max-w-89.5 items-center gap-3 rounded-3xl bg-white p-4 shadow-tabs backdrop-blur-md">
       <div className="flex flex-1 flex-col">
         <span className="text-body-m text-dark">Установите Kosh Kusé</span>
         <span className="mt-1 text-caption-s text-grey-300">

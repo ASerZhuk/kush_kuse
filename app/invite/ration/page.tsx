@@ -32,7 +32,7 @@ export default async function Ration({
 
       <Button
         variant="primary"
-        href={`/club${name ? `?name=${encodeURIComponent(name)}` : ""}`}
+        href={`/home${name ? `?name=${encodeURIComponent(name)}` : ""}`}
         className="mt-8"
       >
         Войти в клуб
