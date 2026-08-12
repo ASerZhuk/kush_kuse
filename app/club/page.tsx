@@ -41,7 +41,7 @@ export default async function Club({
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white pb-32">
-      <div className="rounded-b-[40px] bg-grey px-8 pt-4 pb-8">
+      <div className="rounded-b-[40px] bg-grey px-4 pt-4 pb-8">
         <Image
           src={logoMark}
           alt="Kosh Kusé"
@@ -49,9 +49,9 @@ export default async function Club({
           priority
         />
 
-        <div className="flex justify-center gap-5">
+        <div className="flex justify-between">
           {STORIES.map((story) => (
-            <div key={story.label} className="flex flex-none flex-col items-center gap-2">
+            <div key={story.label} className="flex flex-col items-center gap-2">
               <div className="bg-gradient-story rounded-full p-0.5">
                 <div className="rounded-full bg-white p-0.5">
                   <Image
@@ -156,22 +156,19 @@ export default async function Club({
           </div>
         </div>
 
-        <div className="mt-4 flex items-end gap-4 rounded-3xl bg-grey p-8">
+        <div className="mt-4 flex flex-row justify-between gap-4 rounded-3xl bg-grey p-8">
           <div className="flex flex-col">
             <h2 className="font-display text-subtitle text-dark">
               У Вас два приглашения
             </h2>
-            <div className="flex flex-row">
-              <p className="mt-6 text-body text-grey-300">
-                Кому Вы их доверите —
-                решать Вам
-              </p>
+            <p className="mt-6 text-body text-grey-300">
+              Кому Вы их доверите — решать Вам
+            </p>
+          </div>
 
-              <div className="flex items-center">
-                <div className=" bg-gradient-icon h-8 w-8 -translate-y-1/2 rounded-[40px] shadow-button flex justify-center items-center">
-                  <Image src={arrowUp} alt="" className="h-3.5 w-3.5" />
-                </div>
-              </div>
+          <div className="flex items-center">
+            <div className="bg-gradient-icon h-8 w-8 -translate-y-1/2 rounded-[40px] shadow-button flex justify-center items-center">
+              <Image src={arrowUp} alt="" className="h-3.5 w-3.5" />
             </div>
           </div>
         </div>
