@@ -1,0 +1,195 @@
+@import "tailwindcss";
+
+:root {
+  --background: #ffffff;
+  --foreground: #191919;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+}
+
+@theme {
+  /* Font: Text cut is the default (body/caption sizes below 20px), Display for headlines 20px+ */
+  --font-sans: var(--font-sf-pro-text), -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  --font-display: var(--font-sf-pro-display), -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+
+  /* Typography scale (UI kit) */
+  --text-h1: 1.75rem; /* 28px */
+  --text-h1--line-height: 120%;
+  --text-h1--font-weight: 510;
+
+  --text-h2: 1.5625rem; /* 25px */
+  --text-h2--line-height: 120%;
+  --text-h2--font-weight: 400;
+
+  --text-subtitle: 1.25rem; /* 20px */
+  --text-subtitle--line-height: 130%;
+  --text-subtitle--font-weight: 500;
+  --text-subtitle--letter-spacing: -0.02em;
+
+  --text-body-l: 1.125rem; /* 18px */
+  --text-body-l--line-height: 140%;
+  --text-body-l--font-weight: 400;
+  --text-body-l--letter-spacing: -0.02em;
+
+  --text-body-m: 1rem; /* 16px */
+  --text-body-m--line-height: 140%;
+  --text-body-m--font-weight: 400;
+  --text-body-m--letter-spacing: -0.02em;
+
+  --text-body-s: 0.875rem; /* 14px */
+  --text-body-s--line-height: 140%;
+  --text-body-s--font-weight: 400;
+  --text-body-s--letter-spacing: -0.03em;
+
+  --text-body: 1rem; /* 16px */
+  --text-body--line-height: 140%;
+  --text-body--font-weight: 274;
+  --text-body--letter-spacing: -0.02em;
+
+  --text-caption: 0.75rem; /* 12px */
+  --text-caption--line-height: 140%;
+  --text-caption--font-weight: 400;
+
+  --text-caption-s: 0.5625rem; /* 9px */
+  --text-caption-s--line-height: 150%;
+  --text-caption-s--font-weight: 510;
+
+  /* Grid (UI kit): 4 columns, 24px margin, 16px gutter */
+  --spacing-margin: 1.5rem; /* 24px */
+  --spacing-gutter: 1rem; /* 16px */
+
+  /* Base colors */
+  --color-white: #ffffff;
+  --color-white-70: rgba(255, 255, 255, 0.7);
+  --color-dark: #191919;
+  --color-dark-45: rgba(0, 0, 0, 0.45);
+
+  /* Grey */
+  --color-grey: rgba(157, 157, 157, 0.05);
+  --color-grey-50: #f1f0f0;
+  --color-grey-100: #e6e6e6;
+  --color-grey-200: #cccccc;
+  --color-grey-300: #999999;
+  --color-grey-400: #666666;
+  --color-grey-500: #333333;
+
+  /* Status colors */
+  --color-success-100: #cff2dc;
+  --color-success-200: #2ba057;
+  --color-error-100: #fbe0e0;
+  --color-error-200: #b51717;
+  --color-warning-100: #fde8d2;
+  --color-warning-200: #f67f09;
+  --color-info-100: #e3ebf9;
+  --color-info-200: #2d67d2;
+
+  /* Shadows */
+  --shadow-button: 0px 4px 11.1px 0px #4c4c4c0d, inset 0px 1px 0px 0px rgba(255, 255, 255, 0.6);
+  /* Нажатие: та же внешняя тень, но без верхней inset-подсветки */
+  --shadow-button-pressed: 0px 4px 11.1px 0px rgba(76, 76, 76, 0.05);
+  --shadow-tabs: inset 1px 1px 1px -0.5px rgba(255, 255, 255, 0.75), 0px 1px 8px 0px rgba(0, 0, 0, 0.12);
+}
+
+/* Gradients (UI kit) */
+:root {
+  --gradient-100: linear-gradient(135deg, #ffffff 0%, #cfcfcf 100%);
+  /* Figma отдаёт это как radial-gradient с предупреждением «rotation is not supported»:
+     в макете эллипс повёрнут, CSS так не умеет, и экспорт теряет поворот — растяжка
+     становится горизонтальной и невидимой. Здесь она восстановлена по замерам макета
+     (верхняя кромка 248, чистый белый к 38% высоты). */
+  --gradient-200: linear-gradient(180deg, rgba(153, 153, 153, 0.07) 0%, rgba(153, 153, 153, 0) 38%);
+  --gradient-300: linear-gradient(90deg, #edeef0 0%, #ffc6d5 100%);
+  --gradient-400: radial-gradient(#e4f1db 0%, #edeef0 100%);
+  --gradient-500: radial-gradient(#9dbbfa 0%, #edeef0 100%);
+  /* Обводка сториз (border-image из Figma; здесь как фон-подложка,
+     чтобы работало скругление) */
+  --gradient-story: radial-gradient(88.92% 50% at 50% 50%, #fe2666 0%, #eed1cc 100%);
+  --gradient-icon: radial-gradient(106.6% 116.64% at 105.34% 23.96%, rgba(153, 153, 153, 0.04) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --gradient-button-primary: radial-gradient(106.6% 116.64% at 105.34% 23.96%, rgba(153, 153, 153, 0.04) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --gradient-tabs: radial-gradient(106.6% 116.64% at 105.34% 23.96%, rgba(153, 153, 153, 0.04) 0%, rgba(255, 255, 255, 0.04) 100%);
+  --gradient-info: linear-gradient(135deg, #ffffff 0%, #dfecfa 100%);
+  --gradient-warning: linear-gradient(135deg, #ffffff 0%, #f7ece5 100%);
+  --gradient-success: linear-gradient(135deg, #ffffff 0%, #e5faee 100%);
+  --gradient-error: linear-gradient(135deg, #ffffff 0%, #fbefef 100%);
+}
+
+@layer utilities {
+  .bg-gradient-100 {
+    background-image: var(--gradient-100);
+  }
+  .bg-gradient-200 {
+    background-image: var(--gradient-200);
+  }
+  .bg-gradient-300 {
+    background-image: var(--gradient-300);
+  }
+  .bg-gradient-400 {
+    background-image: var(--gradient-400);
+  }
+  .bg-gradient-500 {
+    background-image: var(--gradient-500);
+  }
+  .bg-gradient-story {
+    background-image: var(--gradient-story);
+  }
+  .bg-gradient-icon {
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-gradient-icon::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--gradient-icon);
+    pointer-events: none;
+  }
+  .bg-gradient-button-primary {
+    position: relative;
+    overflow: hidden;
+  }
+  .bg-gradient-button-primary::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--gradient-button-primary);
+    pointer-events: none;
+  }
+  .bg-gradient-tabs {
+    overflow: hidden;
+  }
+  .bg-gradient-tabs::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background-image: var(--gradient-tabs);
+    pointer-events: none;
+  }
+  .bg-gradient-info {
+    background-image: var(--gradient-info);
+  }
+  .bg-gradient-warning {
+    background-image: var(--gradient-warning);
+  }
+  .bg-gradient-success {
+    background-image: var(--gradient-success);
+  }
+  .bg-gradient-error {
+    background-image: var(--gradient-error);
+  }
+
+  .grid-layout {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: var(--spacing-gutter);
+    padding-inline: var(--spacing-margin);
+  }
+}
+
+body {
+  background: var(--background);
+  color: var(--foreground);
+  font-family: var(--font-sans);
+}
