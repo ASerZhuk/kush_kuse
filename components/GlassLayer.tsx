@@ -67,9 +67,11 @@ export default function GlassLayer({
       // стандартные функции (blur, saturate, brightness...), а не произвольный
       // SVG-фильтр с раздельным сдвигом каналов — это ограничение WebKit,
       // а не то, что можно докрутить пропом.
-      // ×3, чтобы при текущих значениях (blur=4) получить те же 12px, что
-      // были зашиты раньше, — дальше крутится пропом вместе с остальным.
-      setFilter(`blur(${blur * 3}px) saturate(${saturate}) brightness(${brightness})`);
+      // ×1.5 (было ×3 = 12px при blur=4). Тяжёлый блюр здесь двойная цена:
+      // сильнее размывает деталь ЗА кромкой линзы (в Chromium это скрывает
+      // displacement-фильтр, тут прятать нечего) и дороже перерисовывается
+      // каждый кадр скролла на Firefox/Safari — просили снизить оба сразу.
+      setFilter(`blur(${blur * 1.5}px) saturate(${saturate}) brightness(${brightness})`);
       return;
     }
 
