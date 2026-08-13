@@ -173,7 +173,12 @@
   .backdrop-glass {
     --glass-rgb: 255, 255, 255;
     --glass-tint: 0.28;
-    isolation: isolate;
+    /* isolation: isolate здесь быть не может: по спецификации Filter Effects 2
+       такой элемент становится Backdrop Root, и backdrop-filter вложенного
+       GlassLayer видит вместо страницы только собственную заливку родителя —
+       то есть плоский цвет. Safari это соблюдает, Chromium нет, поэтому
+       эффект пропадал ровно на iOS. Изолировать всё равно нечего:
+       mix-blend-mode в проекте не используется. */
     background-color: rgba(var(--glass-rgb), var(--glass-tint));
     /* Только внешняя тень: фаска живёт на ::after, иначе её закрашивает
        бликовый слой, лежащий выше. */

@@ -14,6 +14,12 @@ export const metadata: Metadata = {
 };
 
 export const viewport: Viewport = {
+  // width и initialScale задаём явно: без width=device-width iOS Safari
+  // берёт layout viewport в 980px, и при initial-scale=1 видна только левая
+  // треть страницы — отсюда горизонтальный скролл и необходимость
+  // отзумливать вручную. maximumScale не трогаем, чтобы не отбирать пинч-зум
+  width: "device-width",
+  initialScale: 1,
   viewportFit: "cover",
   themeColor: "#191919",
 };
