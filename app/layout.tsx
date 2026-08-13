@@ -31,11 +31,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${sfProDisplay.variable} ${sfProText.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col font-sans bg-grey-100">
-        {/* id нужен GlassTabBar: он клонирует этот узел и преломляет копию */}
-        <div
-          id="app-content"
-          className="relative mx-auto flex min-h-full w-full max-w-97.5 flex-1 flex-col bg-white"
-        >
+        <div className="relative mx-auto flex min-h-full w-full max-w-97.5 flex-1 flex-col bg-white">
           {children}
         </div>
         <InstallPrompt />
