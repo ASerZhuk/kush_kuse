@@ -101,7 +101,7 @@
      становится горизонтальной и невидимой. Здесь она восстановлена по замерам макета
      (верхняя кромка 248, чистый белый к 38% высоты). */
   --gradient-200: linear-gradient(180deg, rgba(153, 153, 153, 0.07) 0%, rgba(153, 153, 153, 0) 38%);
-  --gradient-300: linear-gradient(135deg, #edeef0 0%, #ffc6d5 200%);
+  --gradient-300: linear-gradient(150deg, #edeef0 0%, #ffc6d5 250%);
   --gradient-400: radial-gradient(#e4f1db 0%, #edeef0 100%);
   --gradient-500: radial-gradient(#9dbbfa 0%, #edeef0 100%);
   /* Обводка сториз (border-image из Figma; здесь как фон-подложка,

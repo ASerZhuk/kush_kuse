@@ -27,15 +27,17 @@ export default function Button({
   ...props
 }: ButtonProps) {
   const hasSubtitle = Boolean(subtitle);
-  const height = hasSubtitle ? "h-16" : "h-12";
   const sizing = iconOnly
-    ? `${height} w-12 flex-none`
+    ? "h-12 w-12 flex-none"
     : fullWidth
-      ? `mx-auto ${height} w-full max-w-75`
-      : `${height} flex-1`;
+      ? `mx-auto w-full max-w-75 ${hasSubtitle ? "" : "h-12"}`
+      : `flex-1 ${hasSubtitle ? "" : "h-12"}`;
+  // Пилюля с подзаголовком высоту не фиксирует — её задают отступы
+  // (16 сверху/снизу, 10 по бокам), а не жёсткий h-16.
+  const padding = iconOnly ? "" : hasSubtitle ? "px-2.5 py-2.5" : "px-4 py-2.5";
 
   const glass = variant === "primary";
-  const classes = `relative flex ${sizing} items-center justify-center rounded-4xl ${glass ? "overflow-hidden" : ""} ${iconOnly ? "" : "px-4 py-2.5"} text-body-m transition-colors active:text-grey-400 ${variantClasses[variant]} ${className}`;
+  const classes = `relative flex ${sizing} items-center justify-center rounded-4xl ${glass ? "overflow-hidden" : ""} ${padding} text-body-m transition-colors active:text-grey-400 ${variantClasses[variant]} ${className}`;
 
   const inner = (
     <>

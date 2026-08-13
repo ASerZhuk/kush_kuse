@@ -56,9 +56,7 @@ export default function Invites() {
             <div key={invite.code} className="rounded-3xl bg-grey p-8">
               <div className="flex justify-end">
                 {invite.status === "free" ? (
-                  <span className="inline-flex h-5.5 items-center justify-center gap-2.5 rounded-2xl bg-white px-2 text-caption-s uppercase text-grey-300">
-                    Свободно
-                  </span>
+                  <Status variant="neutral">Свободно</Status>
                 ) : (
                   <Status variant="success">В клубе</Status>
                 )}

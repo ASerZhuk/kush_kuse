@@ -1,7 +1,10 @@
+import { Suspense } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
-import GlassLayer from "@/components/GlassLayer";
+import Eyebrow from "@/components/ui/Eyebrow";
+import GlassArrow from "@/components/ui/GlassArrow";
+import PetName from "@/components/PetName";
 import ReportSheet from "@/components/ReportSheet";
 import StoryModal from "@/components/StoryModal";
 import Status from "@/components/ui/Status";
@@ -12,7 +15,6 @@ import sciencePhoto from "@/app/assets/temporary/c460a0d9124e4c67a0a613afaa1dbd9
 import devicesPhoto from "@/app/assets/temporary/09a250c81899adc4242986ab40a8bda97c739f1c.png";
 import snacksPhoto from "@/app/assets/temporary/0ebc89293ed73ff0987d904ddac587ae6fdb784f.png";
 import scienceCatPhoto from "@/app/assets/image-gen-1.png";
-import arrowUp from "@/app/assets/arrow-up.svg";
 import plus from "@/app/assets/plus.svg";
 
 const STORIES = [
@@ -30,14 +32,9 @@ const STORIES = [
   { label: "Снеки", photo: snacksPhoto },
 ];
 
-export default async function Home({
-  searchParams,
-}: {
-  searchParams: Promise<{ name?: string }>;
-}) {
-  const { name = "" } = await searchParams;
-  const petName = name || "Фрэнк";
+const PET_NAME_FALLBACK = "Фрэнк";
 
+export default function Home() {
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white pb-32">
       {/* Серая шапка уходит под чёлку, но её содержимое опускается ниже
@@ -86,7 +83,7 @@ export default async function Home({
           <div className="h-34.5 w-30 flex-none overflow-hidden rounded-4xl">
             <Image
               src={catPhoto}
-              alt={petName}
+              alt={PET_NAME_FALLBACK}
               sizes="120px"
               priority
               className="h-full w-full origin-[50%_18%] scale-180 object-cover object-top"
@@ -95,14 +92,16 @@ export default async function Home({
 
           <div className="flex flex-col items-start">
             <h2 className="font-display text-subtitle font-[510] text-dark">
-              {petName}
+              <Suspense fallback={PET_NAME_FALLBACK}>
+                <PetName fallback={PET_NAME_FALLBACK} />
+              </Suspense>
             </h2>
-            <span className="mt-4 flex items-center gap-1 text-caption-s uppercase text-grey-300">
-              Кот
-              <span className="h-1.5 w-1.5 rounded-full bg-grey-100" />
-              3 года
-              <span className="h-1.5 w-1.5 rounded-full bg-grey-100" />6 кг
-            </span>
+            <Eyebrow
+              className="mt-4"
+              textClassName="text-grey-300"
+              dotClassName="bg-grey-100"
+              items={["Кот", "3 года", "6 кг"]}
+            />
             <Status className="mt-2">Всё в порядке</Status>
           </div>
 
@@ -118,17 +117,17 @@ export default async function Home({
         <div className="relative mt-3 rounded-3xl bg-grey p-8">
           <ReportSheet>
             <div className="flex items-center justify-between">
-              <span className="flex items-center gap-1 text-caption-s uppercase text-dark">
-                Отчёт
-                <span className="h-1.5 w-1.5 rounded-full bg-dark" />
-                Июль
-              </span>
+              <Eyebrow textClassName="text-dark" items={["Отчёт", "Июль"]} />
               <Status>Всё в порядке</Status>
             </div>
             <div className="flex flex-row justify-between">
               <div className="flex flex-col">
                 <h2 className="mt-6 max-w-55.5 font-display text-subtitle font-[510] text-dark">
-                  С питомцем {petName} всё в порядке. Вы хорошая хозяйка!
+                  С питомцем{" "}
+                  <Suspense fallback={PET_NAME_FALLBACK}>
+                    <PetName fallback={PET_NAME_FALLBACK} />
+                  </Suspense>{" "}
+                  всё в порядке. Вы хорошая хозяйка!
                 </h2>
 
                 <p className="mt-6 max-w-55.5 text-body text-grey-400">
@@ -138,10 +137,7 @@ export default async function Home({
               </div>
 
               <div className="flex items-center">
-                <div className="backdrop-glass backdrop-glass-sm relative h-8 w-8 -translate-y-1/2 overflow-hidden rounded-[40px] flex justify-center items-center">
-                  <GlassLayer depth={4} strength={10} chromaticAberration={1} blur={2} />
-                  <Image src={arrowUp} alt="" className="relative z-10 h-3.5 w-3.5" />
-                </div>
+                <GlassArrow />
               </div>
             </div>
           </ReportSheet>
@@ -184,10 +180,7 @@ export default async function Home({
           </div>
 
           <div className="flex items-center">
-            <div className="backdrop-glass backdrop-glass-sm relative h-8 w-8 -translate-y-1/2 overflow-hidden rounded-[40px] flex justify-center items-center">
-              <GlassLayer depth={4} strength={10} chromaticAberration={1} blur={2} />
-              <Image src={arrowUp} alt="" className="relative z-10 h-3.5 w-3.5" />
-            </div>
+            <GlassArrow />
           </div>
         </Link>
       </div>

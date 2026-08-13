@@ -1,4 +1,5 @@
 import Button from "@/components/ui/Button";
+import Eyebrow from "@/components/ui/Eyebrow";
 
 export default async function Ration({
   searchParams,
@@ -10,9 +11,7 @@ export default async function Ration({
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white px-margin pt-62.5">
       <div className="flex flex-col gap-6 rounded-4xl bg-grey px-8 pt-8 pb-10">
-        <span className="block text-caption-s uppercase text-grey-400">
-          Рацион составлен
-        </span>
+        <Eyebrow className="block">Рацион составлен</Eyebrow>
 
         <h1 className="font-display text-subtitle text-dark">
           {name ? `${name}. Рацион готов` : "Рацион готов"}

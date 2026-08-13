@@ -1,12 +1,15 @@
 import type { ReactNode } from "react";
 
-export type StatusVariant = "success" | "error" | "warning" | "info";
+export type StatusVariant = "success" | "error" | "warning" | "info" | "neutral";
 
 const variantClasses: Record<StatusVariant, string> = {
   success: "bg-success-100 text-success-200",
   error: "bg-error-100 text-error-200",
   warning: "bg-warning-100 text-warning-200",
   info: "bg-info-100 text-info-200",
+  // Белая пилюля поверх серых/градиентных карточек (напр. "Свободно",
+  // "Месяц в подарок") — не окрашенный статус, а нейтральная плашка.
+  neutral: "bg-white text-grey-300",
 };
 
 export default function Status({

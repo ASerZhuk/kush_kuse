@@ -1,6 +1,6 @@
 "use client";
 
-import { useLayoutEffect, useRef, useState } from "react";
+import { useEffect, useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import GlassLayer from "@/components/GlassLayer";
@@ -29,6 +29,12 @@ export default function BottomNav() {
   const navRef = useRef<HTMLElement>(null);
   const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
   const [pillX, setPillX] = useState<number>();
+
+  // router.push (в отличие от Link) сам ничего не префетчит — без этого
+  // каждое переключение таба в проде ждёт RSC-пейлоад с нуля.
+  useEffect(() => {
+    TABS.forEach((tab) => router.prefetch(tab.href));
+  }, [router]);
 
   // Пилюля — один смонтированный элемент, который едет между табами
   // translateX'ом, а не перемонтируется на каждый таб: так GlassLayer не

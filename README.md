@@ -73,7 +73,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 ### Градиенты и тени
 
 - `bg-gradient-100…500`, `bg-gradient-story`, `bg-gradient-icon`, `bg-gradient-tabs`, `bg-gradient-toast-success`, `bg-gradient-{info,warning,success,error}` — см. `@theme`/`:root` в `globals.css`; часть градиентов (например `gradient-200`) подобрана вручную по замерам макета, т.к. Figma теряет поворот эллипса при экспорте `radial-gradient`.
-- `--gradient-300` — `linear-gradient(135deg, #edeef0 0%, #ffc6d5 150%)`, фон полноэкранной сторис-модалки (`StoryModal`); стоп розового вынесен за 100%, чтобы у центра дольше держался серо-белый.
+- `--gradient-300` — `linear-gradient(150deg, #edeef0 0%, #ffc6d5 250%)`, фон полноэкранной сторис-модалки (`StoryModal`) и карточки подписки на `/ration`; стоп розового вынесен далеко за 100%, чтобы у центра дольше держался серо-белый.
 - `--gradient-toast-success` — `linear-gradient(90deg, #e5faee 0%, rgba(255,255,255,0) 100%)`, подложка 88×64 под иконкой в success-тосте (`Toast`).
 - `shadow-button` / `shadow-button-pressed` — тень кнопки в состояниях enabled/pressed.
 - `shadow-tabs` — тень стеклянной панели (аналог Figma `effectStyleEffect2`).
@@ -86,21 +86,25 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 - `.backdrop-glass` — база (тонкая заливка + внешняя тень + бликовый купол на `::after`).
 - `.backdrop-glass-sm` — вариант для мелких элементов (32px круги): заливка слабее, тень мягче.
 - `.backdrop-glass-grey` — серое стекло для второстепенных элементов.
+- `.backdrop-glass-clear` — без заливки и без блика (`--glass-tint: 0`, `::after` выключен): только преломление через `GlassLayer` + тонкая inset-обводка вместо drop-shadow. Используется в `Button` variant `primary`.
 
-Используется в `BottomNav`, кнопке-стрелке (`arrow-up.svg`), `ReportSheet` и `Toast`.
+Используется в `BottomNav`, `GlassArrow`, `Button` (`primary`), `ReportSheet` и `Toast`.
 
 ### Компоненты (`components/ui`, `components/icons`, `components/*`)
 
 | Компонент | Назначение |
 | --- | --- |
-| `Button` | `variant`: `primary` (градиент + тень, розовый акцент через `disabled`/`active`) / `secondary` (плоский, `bg-grey`); поддерживает `href` (рендерится как `Link`), `iconOnly`, `fullWidth` |
-| `Status` | Пилюля-бейдж, `variant`: `success` / `error` / `warning` / `info` |
+| `Button` | Единый стиль для всех действий: `variant`: `primary` (жидкое стекло `.backdrop-glass-clear`, без фоновой заливки) / `secondary` (плоский, `bg-grey`); поддерживает `href` (рендерится как `Link`), `iconOnly`, `fullWidth`, `subtitle` (доп. строка `Caption-S` под заголовком `Body-M`, напр. цена) |
+| `Status` | Пилюля-бейдж, `variant`: `success` / `error` / `warning` / `info` / `neutral` (белая заливка, напр. «Свободно», «Месяц в подарок») |
+| `Eyebrow` | Мелкая uppercase-подпись (`Caption-S`, `Grey/400`); один сегмент — `children`, несколько — `items` через точку-разделитель 4×4px (`textClassName`/`dotClassName` задаются раздельно) |
+| `GlassArrow` | Стеклянный кружок 32px со стрелкой вверх (`backdrop-glass-sm` + `GlassLayer`), вынесен из повторявшейся вёрстки на `/home` |
 | `Chip` | Тоггл-чип (`selected` меняет заливку с `bg-grey` на `bg-grey-500`) |
 | `Input` | Текстовое поле с состоянием `error`/`errorMessage` |
 | `Toast` | Success-уведомление (`backdrop-glass` + `GlassLayer`, `gradient-toast-success` под иконкой), автоскрытие через 3с |
 | `StoryModal` | Полноэкранная модалка сторис (portal, `gradient-300`), scale+fade появление за 350мс на `cubic-bezier(0.22,1,0.36,1)` |
 | `GlassLayer` | SVG-based liquid glass слой (см. выше) |
-| `BottomNav` | Общий нижний таббар (5 вкладок), активная — со стеклянным кружком |
-| `ArrowLeftIcon`, `CheckIcon`, `CheckCircleIcon` | SVG-иконки как React-компоненты (`stroke="currentColor"`) |
+| `BottomNav` | Общий нижний таббар (5 вкладок): рендерится один раз в `app/(tabs)/layout.tsx`, активная вкладка — из `usePathname`, переход — `router.push` (с ручным `router.prefetch()` всех вкладок на монтировании), пилюля едет между табами `translateX`'ом без перемонтирования `GlassLayer` |
+| `PetName` | Клиентский лист (`useSearchParams`), подставляет `?name=` из онбординга поверх статического `/home`; используется внутри `<Suspense>`, чтобы страница осталась `○ Static` |
+| `ArrowLeftIcon`, `CheckIcon`, `CheckCircleIcon`, `TruckIcon` | SVG-иконки как React-компоненты (`stroke="currentColor"`) |
 
 Остальные иконки — статические SVG в `app/assets/*.svg`, подключаются через `next/image`.
