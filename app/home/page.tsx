@@ -127,8 +127,9 @@ export default async function Home({
             </div>
 
             <div className="flex items-center">
-              <div className=" bg-gradient-icon h-8 w-8 -translate-y-1/2 rounded-[40px] shadow-button flex justify-center items-center">
-                <Image src={arrowUp} alt="" className="h-3.5 w-3.5" />
+              <div className="backdrop-glass backdrop-glass-sm relative h-8 w-8 -translate-y-1/2 overflow-hidden rounded-[40px] flex justify-center items-center">
+                <GlassLayer depth={4} strength={10} chromaticAberration={1} blur={2} />
+                <Image src={arrowUp} alt="" className="relative z-10 h-3.5 w-3.5" />
               </div>
 
             </div>
@@ -171,8 +172,9 @@ export default async function Home({
           </div>
 
           <div className="flex items-center">
-            <div className="bg-gradient-icon h-8 w-8 -translate-y-1/2 rounded-[40px] shadow-button flex justify-center items-center">
-              <Image src={arrowUp} alt="" className="h-3.5 w-3.5" />
+            <div className="backdrop-glass backdrop-glass-sm relative h-8 w-8 -translate-y-1/2 overflow-hidden rounded-[40px] flex justify-center items-center">
+              <GlassLayer depth={4} strength={10} chromaticAberration={1} blur={2} />
+              <Image src={arrowUp} alt="" className="relative z-10 h-3.5 w-3.5" />
             </div>
           </div>
         </div>
