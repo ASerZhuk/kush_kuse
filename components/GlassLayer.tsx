@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import { getDisplacementFilter } from "@/lib/liquidGlass";
 
 type Props = {
@@ -69,7 +69,7 @@ export default function GlassLayer({
   const ref = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<string>();
 
-  useEffect(() => {
+  useLayoutEffect(() => {
     const el = ref.current;
     const parent = el?.parentElement;
     if (!el || !parent) return;

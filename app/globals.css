@@ -101,7 +101,7 @@
      становится горизонтальной и невидимой. Здесь она восстановлена по замерам макета
      (верхняя кромка 248, чистый белый к 38% высоты). */
   --gradient-200: linear-gradient(180deg, rgba(153, 153, 153, 0.07) 0%, rgba(153, 153, 153, 0) 38%);
-  --gradient-300: linear-gradient(90deg, #edeef0 0%, #ffc6d5 100%);
+  --gradient-300: linear-gradient(135deg, #edeef0 0%, #ffc6d5 150%);
   --gradient-400: radial-gradient(#e4f1db 0%, #edeef0 100%);
   --gradient-500: radial-gradient(#9dbbfa 0%, #edeef0 100%);
   /* Обводка сториз (border-image из Figma; здесь как фон-подложка,
@@ -110,6 +110,9 @@
   --gradient-icon: radial-gradient(106.6% 116.64% at 105.34% 23.96%, rgba(153, 153, 153, 0.04) 0%, rgba(255, 255, 255, 0.04) 100%);
   --gradient-button-primary: radial-gradient(106.6% 116.64% at 105.34% 23.96%, rgba(153, 153, 153, 0.04) 0%, rgba(255, 255, 255, 0.04) 100%);
   --gradient-tabs: radial-gradient(106.6% 116.64% at 105.34% 23.96%, rgba(153, 153, 153, 0.04) 0%, rgba(255, 255, 255, 0.04) 100%);
+  /* Подложка под иконкой в success-тосте: 88×64, непрозрачный мятный у иконки →
+     прозрачный белый к центру тоста (замерено по Figma-инспектору). */
+  --gradient-toast-success: linear-gradient(90deg, #e5faee 0%, rgba(255, 255, 255, 0) 100%);
   --gradient-info: linear-gradient(135deg, #ffffff 0%, #dfecfa 100%);
   --gradient-warning: linear-gradient(135deg, #ffffff 0%, #f7ece5 100%);
   --gradient-success: linear-gradient(135deg, #ffffff 0%, #e5faee 100%);
@@ -254,6 +257,9 @@
       inset 0 -5px 6px -5px rgba(0, 0, 0, 0.07),
       inset 7px 0 8px -7px rgba(0, 0, 0, 0.075),
       inset -7px 0 8px -7px rgba(0, 0, 0, 0.075);
+  }
+  .bg-gradient-toast-success {
+    background-image: var(--gradient-toast-success);
   }
   .bg-gradient-info {
     background-image: var(--gradient-info);

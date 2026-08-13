@@ -3,6 +3,7 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import GlassLayer from "@/components/GlassLayer";
 import ReportSheet from "@/components/ReportSheet";
+import StoryModal from "@/components/StoryModal";
 import Status from "@/components/ui/Status";
 import logoMark from "@/app/assets/Logo.svg";
 import catPhoto from "@/app/assets/temporary/4198c60aabe1247b9ab2cc3d90498749dc36c40e.png";
@@ -10,27 +11,23 @@ import clubPhoto from "@/app/assets/temporary/cc4e7503d25b2e89caa56ae58fb05e8bbd
 import sciencePhoto from "@/app/assets/temporary/c460a0d9124e4c67a0a613afaa1dbd9937aab218.png";
 import devicesPhoto from "@/app/assets/temporary/09a250c81899adc4242986ab40a8bda97c739f1c.png";
 import snacksPhoto from "@/app/assets/temporary/0ebc89293ed73ff0987d904ddac587ae6fdb784f.png";
+import scienceCatPhoto from "@/app/assets/image-gen-1.png";
 import arrowUp from "@/app/assets/arrow-up.svg";
 import plus from "@/app/assets/plus.svg";
-import homeIcon from "@/app/assets/home.svg";
-import carIcon from "@/app/assets/car.svg";
-import heartIcon from "@/app/assets/heart.svg";
-import messageIcon from "@/app/assets/message.svg";
-import userIcon from "@/app/assets/user.svg";
 
 const STORIES = [
   { label: "Клуб", photo: clubPhoto },
-  { label: "Наука", photo: sciencePhoto },
+  {
+    label: "Наука",
+    photo: sciencePhoto,
+    modal: {
+      photo: scienceCatPhoto,
+      title: "Один факт",
+      body: "Организм кошки не вырабатывает таурин. В каждой порции — суточная норма. Подпись технолога, точка.",
+    },
+  },
   { label: "Девайсы", photo: devicesPhoto },
   { label: "Снеки", photo: snacksPhoto },
-];
-
-const TABS = [
-  { icon: homeIcon, label: "Главная" },
-  { icon: carIcon, label: "Доставка" },
-  { icon: heartIcon, label: "Здоровье" },
-  { icon: messageIcon, label: "Чат" },
-  { icon: userIcon, label: "Профиль" },
 ];
 
 export default async function Home({
@@ -54,23 +51,33 @@ export default async function Home({
         />
 
         <div className="flex justify-between">
-          {STORIES.map((story) => (
-            <div key={story.label} className="flex flex-col items-center gap-2">
-              <div className="bg-gradient-story rounded-full p-0.5">
-                <div className="rounded-full bg-white p-0.5">
-                  <Image
-                    src={story.photo}
-                    alt=""
-                    sizes="56px"
-                    className="h-14 w-14 rounded-full object-cover"
-                  />
+          {STORIES.map((story) => {
+            const avatar = (
+              <div className="flex flex-col items-center gap-2">
+                <div className="bg-gradient-story rounded-full p-0.5">
+                  <div className="rounded-full bg-white p-0.5">
+                    <Image
+                      src={story.photo}
+                      alt=""
+                      sizes="56px"
+                      className="h-14 w-14 rounded-full object-cover"
+                    />
+                  </div>
                 </div>
+                <span className="text-caption-s uppercase text-dark">
+                  {story.label}
+                </span>
               </div>
-              <span className="text-caption-s uppercase text-dark">
-                {story.label}
-              </span>
-            </div>
-          ))}
+            );
+
+            return story.modal ? (
+              <StoryModal key={story.label} {...story.modal}>
+                {avatar}
+              </StoryModal>
+            ) : (
+              <div key={story.label}>{avatar}</div>
+            );
+          })}
         </div>
       </div>
 
@@ -92,9 +99,9 @@ export default async function Home({
             </h2>
             <span className="mt-4 flex items-center gap-1 text-caption-s uppercase text-grey-300">
               Кот
-              <span className="h-1 w-1 rounded-full bg-grey-100" />
+              <span className="h-1.5 w-1.5 rounded-full bg-grey-100" />
               3 года
-              <span className="h-1 w-1 rounded-full bg-grey-100" />6 кг
+              <span className="h-1.5 w-1.5 rounded-full bg-grey-100" />6 кг
             </span>
             <Status className="mt-2">Всё в порядке</Status>
           </div>
@@ -113,7 +120,7 @@ export default async function Home({
             <div className="flex items-center justify-between">
               <span className="flex items-center gap-1 text-caption-s uppercase text-dark">
                 Отчёт
-                <span className="h-1 w-1 rounded-full bg-dark" />
+                <span className="h-1.5 w-1.5 rounded-full bg-dark" />
                 Июль
               </span>
               <Status>Всё в порядке</Status>
@@ -157,13 +164,16 @@ export default async function Home({
               Рацион на две недели: свежая еда, молочная вода, снеки. Курьер
               предупредит за час.
             </p>
-            <Button variant="primary" href="/invite/ration" className="mt-6">
+            <Button variant="primary" href="/ration" className="mt-6">
               К рациону
             </Button>
           </div>
         </div>
 
-        <div className="mt-4 flex flex-row justify-between gap-4 rounded-3xl bg-grey p-8">
+        <Link
+          href="/invites"
+          className="mt-4 flex flex-row justify-between gap-4 rounded-3xl bg-grey p-8"
+        >
           <div className="flex flex-col">
             <h2 className="font-display text-subtitle text-dark">
               У Вас два приглашения
@@ -179,41 +189,8 @@ export default async function Home({
               <Image src={arrowUp} alt="" className="relative z-10 h-3.5 w-3.5" />
             </div>
           </div>
-        </div>
+        </Link>
       </div>
-
-      {/* will-change-transform + translateZ(0) поднимают бар на отдельный GPU-слой:
-          на Firefox/Safari backdrop-filter пересчитывает размытие фона заново на
-          каждый кадр скролла, если элемент не закреплён за своим слоем — отсюда
-          дёрганье. С отдельным слоем браузер композитит уже готовый слой поверх
-          скроллящегося контента вместо перерисовки блюра каждый кадр. */}
-      <nav className="fixed inset-x-4 bottom-[calc(8px+env(safe-area-inset-bottom))] z-10 mx-auto flex max-w-89.5 items-center justify-between gap-2 overflow-hidden rounded-full p-2 backdrop-glass will-change-transform transform-[translateZ(0)]">
-        {/* Дефолты (chromaticAberration 2, strength 26, blur 1) на контрастных
-            иконках под баром давали цветные разводы вместо мягкого стекла —
-            смещение снижено и блюр поднят, чтобы деталь фона гасла раньше, чем
-            успевает разъехаться по каналам. chromaticAberration=1 — по вкусу:
-            едва заметный цветной кант по кромке, а не полноценные разводы. */}
-        <GlassLayer depth={8} strength={12} chromaticAberration={1} blur={4} />
-        {TABS.map((tab, index) => (
-          <button
-            key={tab.label}
-            type="button"
-            aria-label={tab.label}
-            aria-current={index === 0 ? "page" : undefined}
-            className={`relative z-10 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full ${index === 0 ? "backdrop-glass backdrop-glass-sm" : ""
-              }`}
-          >
-            {index === 0 && (
-              <GlassLayer depth={5} strength={8} chromaticAberration={1} blur={4} />
-            )}
-            <Image
-              src={tab.icon}
-              alt=""
-              className={`relative z-10 h-5 w-5 ${index === 0 ? "" : "opacity-40"}`}
-            />
-          </button>
-        ))}
-      </nav>
     </div>
   );
 }
