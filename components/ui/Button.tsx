@@ -1,19 +1,19 @@
 import Link from "next/link";
+import GlassLayer from "@/components/GlassLayer";
 import type { ButtonProps, ButtonVariant } from "@/types/button";
 
 const variantClasses: Record<ButtonVariant, string> = {
-  // Значения из макета (Figma): Enable — Gradient/Gradient 200 (тот самый
-  // едва заметный градиент, не сплошной белый — отсюда была слабая
-  // видимость), Pressed — White 70% + shadow-button-pressed (готовый токен,
-  // ровно те же цифры), Disable — Grey/Grey 100 сплошной. bg-none в active/
-  // disabled чистит слой градиента, иначе он остаётся под сплошной заливкой.
+  // Единый стиль для всех основных действий: жидкое стекло без собственной
+  // заливки и блика (см. .backdrop-glass-clear) — только преломление фона
+  // через GlassLayer и тень для объёма. Disable — Grey/Grey 100 сплошной,
+  // тут стекло намеренно выключается, чтобы состояние читалось однозначно.
   primary:
-    "gap-3 bg-gradient-200 shadow-button active:bg-none active:bg-white/70 active:shadow-button-pressed disabled:bg-none disabled:bg-grey-100 disabled:shadow-none disabled:text-white",
+    "gap-1 text-dark backdrop-glass backdrop-glass-clear active:opacity-70 disabled:bg-grey-100 disabled:shadow-none disabled:text-white",
   // Grey/Grey (--color-grey, 5% непрозрачности — тот же токен, что у card-фонов
   // по всему приложению) — не Grey/Grey 100, тот сплошной и был слишком
   // заметным. Тени в макете у secondary нет вообще: она плоская, приподнята
   // только primary. На нажатии темнеет до сплошного Grey/Grey 100.
-  secondary: "gap-2 bg-grey active:bg-grey-100",
+  secondary: "gap-2 text-dark bg-grey active:bg-grey-100",
 };
 
 export default function Button({
@@ -21,22 +21,43 @@ export default function Button({
   href,
   iconOnly = false,
   fullWidth = true,
+  subtitle,
   className = "",
   children,
   ...props
 }: ButtonProps) {
+  const hasSubtitle = Boolean(subtitle);
+  const height = hasSubtitle ? "h-16" : "h-12";
   const sizing = iconOnly
-    ? "h-12 w-12 flex-none"
+    ? `${height} w-12 flex-none`
     : fullWidth
-      ? "mx-auto h-12 w-full max-w-75"
-      : "h-12 flex-1";
+      ? `mx-auto ${height} w-full max-w-75`
+      : `${height} flex-1`;
 
-  const classes = `relative flex ${sizing} items-center justify-center rounded-4xl ${iconOnly ? "" : "px-4 py-2.5"} text-body-m text-dark transition-colors active:text-grey-400 ${variantClasses[variant]} ${className}`;
+  const glass = variant === "primary";
+  const classes = `relative flex ${sizing} items-center justify-center rounded-4xl ${glass ? "overflow-hidden" : ""} ${iconOnly ? "" : "px-4 py-2.5"} text-body-m transition-colors active:text-grey-400 ${variantClasses[variant]} ${className}`;
 
   const inner = (
-    <span className="relative z-10 flex items-center justify-center gap-[inherit]">
-      {children}
-    </span>
+    <>
+      {glass && (
+        <GlassLayer
+          depth={5}
+          strength={6}
+          chromaticAberration={1}
+          blur={3}
+          saturate={1}
+          brightness={1}
+        />
+      )}
+      <span className="relative z-10 flex flex-col items-center justify-center gap-0.5">
+        <span className={`flex items-center justify-center ${hasSubtitle ? "" : "gap-[inherit]"}`}>
+          {children}
+        </span>
+        {subtitle && (
+          <span className="text-caption-s uppercase text-dark/50">{subtitle}</span>
+        )}
+      </span>
+    </>
   );
 
   if (href) {
