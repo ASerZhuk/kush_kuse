@@ -16,24 +16,39 @@ type Props = {
   brightness?: number;
 };
 
-/** Firefox (не путать с Chromium/WebKit — свой движок Gecko). */
+/** Настоящий Firefox — движок Gecko (десктоп, Android). */
 const isFirefox = () =>
   typeof navigator !== "undefined" && /Firefox/.test(navigator.userAgent);
 
 /**
- * Safari не умеет url() внутри backdrop-filter — там остаётся обычный blur.
+ * Любой браузер, вынужденно работающий на движке WebKit: Safari, а на iOS —
+ * ВООБЩЕ ЛЮБОЙ браузер, включая Firefox и Chrome. Apple требует от всех
+ * браузеров в App Store использовать системный WebKit, поэтому у Firefox для
+ * iOS в User-Agent стоит "FxiOS", а не "Firefox" — под своим брендом там
+ * всегда чужой движок. isFirefox() эту строку не ловит, и без отдельной
+ * проверки на WebKit iOS-Firefox проваливался в тот же баг, что и Safari:
+ * блюра не было вообще.
+ */
+const isWebKit = () =>
+  typeof navigator !== "undefined" &&
+  /AppleWebKit/.test(navigator.userAgent) &&
+  !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
+
+/**
+ * Safari (и любой другой WebKit на iOS) не умеет url() внутри backdrop-filter
+ * — там остаётся обычный blur. Firefox — своя история, см. isFirefox().
  *
  * Проверка через эхо CSSOM (задать cssText и прочитать style.backdropFilter
  * обратно) тут не работает как feature-detect: url() формально входит в
- * грамматику <filter-value-list>, и Firefox синтаксически принимает и
- * возвращает строку, хотя SVG-фильтр через backdrop-filter не рисует вообще.
- * Detection врал — говорил true там, где рендера нет. У нас fetch/фильтр
- * ссылается на data-URI с фрагментом (url('data:...#displace')), Firefox эту
- * конструкцию не резолвит, и в результате пропадал даже обычный blur —
- * не только смещение. Поэтому Firefox, как и WebKit, отсекается явно.
+ * грамматику <filter-value-list>, и WebKit с Firefox синтаксически принимают
+ * и возвращают строку, хотя SVG-фильтр через backdrop-filter не рисуют вообще.
+ * Detection врал — говорил true там, где рендера нет. У нас фильтр ссылается
+ * на data-URI с фрагментом (url('data:...#displace')), эту конструкцию оба
+ * движка не резолвят, и в результате пропадал даже обычный blur — не только
+ * смещение. Поэтому оба движка отсекаются явно, до похода в CSSOM.
  */
 const supportsBackdropFilterUrl = () => {
-  if (isFirefox()) return false;
+  if (isFirefox() || isWebKit()) return false;
   const el = document.createElement("div");
   el.style.cssText = "backdrop-filter: url(#test)";
   return (
@@ -106,7 +121,15 @@ export default function GlassLayer({
       ref={ref}
       aria-hidden
       className="pointer-events-none absolute inset-0 z-0 rounded-[inherit]"
-      style={filter ? { backdropFilter: filter } : undefined}
+      style={
+        filter
+          ? // WebkitBackdropFilter обязателен: до Safari 18 (и на всех
+            // iOS-браузерах, которые внутри тот же WebKit) свойство без
+            // префикса игнорируется целиком, а React инлайн-стили сам не
+            // префиксует
+            { backdropFilter: filter, WebkitBackdropFilter: filter }
+          : undefined
+      }
     />
   );
 }
