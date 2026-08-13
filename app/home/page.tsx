@@ -3,6 +3,7 @@ import Link from "next/link";
 import Button from "@/components/ui/Button";
 import GlassLayer from "@/components/GlassLayer";
 import ReportSheet from "@/components/ReportSheet";
+import GlassTabBar from "@/components/GlassTabBar";
 import Status from "@/components/ui/Status";
 import logoMark from "@/app/assets/Logo.svg";
 import catPhoto from "@/app/assets/temporary/4198c60aabe1247b9ab2cc3d90498749dc36c40e.png";
@@ -12,25 +13,12 @@ import devicesPhoto from "@/app/assets/temporary/09a250c81899adc4242986ab40a8bda
 import snacksPhoto from "@/app/assets/temporary/0ebc89293ed73ff0987d904ddac587ae6fdb784f.png";
 import arrowUp from "@/app/assets/arrow-up.svg";
 import plus from "@/app/assets/plus.svg";
-import homeIcon from "@/app/assets/home.svg";
-import carIcon from "@/app/assets/car.svg";
-import heartIcon from "@/app/assets/heart.svg";
-import messageIcon from "@/app/assets/message.svg";
-import userIcon from "@/app/assets/user.svg";
 
 const STORIES = [
   { label: "Клуб", photo: clubPhoto },
   { label: "Наука", photo: sciencePhoto },
   { label: "Девайсы", photo: devicesPhoto },
   { label: "Снеки", photo: snacksPhoto },
-];
-
-const TABS = [
-  { icon: homeIcon, label: "Главная" },
-  { icon: carIcon, label: "Доставка" },
-  { icon: heartIcon, label: "Здоровье" },
-  { icon: messageIcon, label: "Чат" },
-  { icon: userIcon, label: "Профиль" },
 ];
 
 export default async function Home({
@@ -182,28 +170,7 @@ export default async function Home({
         </div>
       </div>
 
-      <nav className="fixed inset-x-4 bottom-[calc(8px+env(safe-area-inset-bottom))] z-10 mx-auto flex max-w-89.5 items-center justify-between gap-2 overflow-hidden rounded-full p-2 backdrop-glass">
-        <GlassLayer />
-        {TABS.map((tab, index) => (
-          <button
-            key={tab.label}
-            type="button"
-            aria-label={tab.label}
-            aria-current={index === 0 ? "page" : undefined}
-            className={`relative z-10 flex h-12 w-12 items-center justify-center overflow-hidden rounded-full ${index === 0 ? "backdrop-glass backdrop-glass-sm" : ""
-              }`}
-          >
-            {index === 0 && (
-              <GlassLayer depth={5} strength={14} chromaticAberration={1} blur={4} />
-            )}
-            <Image
-              src={tab.icon}
-              alt=""
-              className={`relative z-10 h-5 w-5 ${index === 0 ? "" : "opacity-40"}`}
-            />
-          </button>
-        ))}
-      </nav>
+      <GlassTabBar activeIndex={0} />
     </div>
   );
 }
