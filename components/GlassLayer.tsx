@@ -16,8 +16,20 @@ type Props = {
   brightness?: number;
 };
 
-/** Safari не умеет url() внутри backdrop-filter — там остаётся обычный blur. */
+/** WebKit (Safari, все браузеры на iOS) — не Chromium, у которого движок тот же. */
+const isWebKit = () =>
+  typeof navigator !== "undefined" &&
+  /AppleWebKit/.test(navigator.userAgent) &&
+  !/Chrome|Chromium|Edg|OPR/.test(navigator.userAgent);
+
+/**
+ * Safari не умеет url() внутри backdrop-filter — там остаётся обычный blur.
+ * Проверять одним лишь парсингом значения нельзя: Safari 18 свойство
+ * распознаёт и значение возвращает, но SVG-фильтр не применяет — вышло бы
+ * прозрачное стекло вместо размытия. Поэтому WebKit отсекаем явно.
+ */
 const supportsBackdropFilterUrl = () => {
+  if (isWebKit()) return false;
   const el = document.createElement("div");
   el.style.cssText = "backdrop-filter: url(#test)";
   return (
@@ -44,7 +56,11 @@ export default function GlassLayer({
     if (!el || !parent) return;
 
     if (!supportsBackdropFilterUrl()) {
-      setFilter(`blur(12px) saturate(1.8) brightness(1.06)`);
+      // Преломления нет — компенсируем размытием и насыщенностью, иначе
+      // элемент читается как плоская полупрозрачная заливка
+      setFilter(
+        `blur(${Math.max(8, blur * 4)}px) saturate(${saturate + 0.2}) brightness(${brightness})`,
+      );
       return;
     }
 
@@ -79,7 +95,13 @@ export default function GlassLayer({
       ref={ref}
       aria-hidden
       className="pointer-events-none absolute inset-0 z-0 rounded-[inherit]"
-      style={filter ? { backdropFilter: filter } : undefined}
+      style={
+        filter
+          ? // WebkitBackdropFilter обязателен: до Safari 18 без префикса
+            // свойство просто игнорируется, и стекло пропадает целиком
+            { backdropFilter: filter, WebkitBackdropFilter: filter }
+          : undefined
+      }
     />
   );
 }

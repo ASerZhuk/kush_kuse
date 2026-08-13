@@ -2,6 +2,7 @@ import Image from "next/image";
 import Link from "next/link";
 import Button from "@/components/ui/Button";
 import GlassLayer from "@/components/GlassLayer";
+import ReportSheet from "@/components/ReportSheet";
 import Status from "@/components/ui/Status";
 import logoMark from "@/app/assets/Logo.svg";
 import catPhoto from "@/app/assets/temporary/4198c60aabe1247b9ab2cc3d90498749dc36c40e.png";
@@ -108,36 +109,35 @@ export default async function Home({
         </div>
 
         <div className="relative mt-3 rounded-3xl bg-grey p-8">
-          <div className="flex items-center justify-between">
-            <span className="flex items-center gap-1 text-caption-s uppercase text-dark">
-              Отчёт
-              <span className="h-1 w-1 rounded-full bg-dark" />
-              Июль
-            </span>
-            <Status>Всё в порядке</Status>
-          </div>
-          <div className="flex flex-row justify-between">
-            <div className="flex flex-col">
-              <h2 className="mt-6 max-w-55.5 font-display text-subtitle font-[510] text-dark">
-                С питомцем {petName} всё в порядке. Вы хорошая хозяйка!
-              </h2>
-
-              <p className="mt-6 max-w-55.5 text-body text-grey-400">
-                Первый месяц — в подарок. Вы не обязаны разбираться в таурине — вы
-                обязаны её любить. Остальное мы берём на себя.
-              </p>
+          <ReportSheet>
+            <div className="flex items-center justify-between">
+              <span className="flex items-center gap-1 text-caption-s uppercase text-dark">
+                Отчёт
+                <span className="h-1 w-1 rounded-full bg-dark" />
+                Июль
+              </span>
+              <Status>Всё в порядке</Status>
             </div>
+            <div className="flex flex-row justify-between">
+              <div className="flex flex-col">
+                <h2 className="mt-6 max-w-55.5 font-display text-subtitle font-[510] text-dark">
+                  С питомцем {petName} всё в порядке. Вы хорошая хозяйка!
+                </h2>
 
-            <div className="flex items-center">
-              <div className="backdrop-glass backdrop-glass-sm relative h-8 w-8 -translate-y-1/2 overflow-hidden rounded-[40px] flex justify-center items-center">
-                <GlassLayer depth={4} strength={10} chromaticAberration={1} blur={2} />
-                <Image src={arrowUp} alt="" className="relative z-10 h-3.5 w-3.5" />
+                <p className="mt-6 max-w-55.5 text-body text-grey-400">
+                  Первый месяц — в подарок. Вы не обязаны разбираться в таурине — вы
+                  обязаны её любить. Остальное мы берём на себя.
+                </p>
               </div>
 
+              <div className="flex items-center">
+                <div className="backdrop-glass backdrop-glass-sm relative h-8 w-8 -translate-y-1/2 overflow-hidden rounded-[40px] flex justify-center items-center">
+                  <GlassLayer depth={4} strength={10} chromaticAberration={1} blur={2} />
+                  <Image src={arrowUp} alt="" className="relative z-10 h-3.5 w-3.5" />
+                </div>
+              </div>
             </div>
-
-          </div>
-
+          </ReportSheet>
         </div>
 
         <h1 className="mt-8 px-2 font-display text-h2 text-dark">
