@@ -42,7 +42,9 @@ export default async function Home({
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white pb-32">
-      <div className="rounded-b-[40px] bg-grey px-4 pt-4 pb-8">
+      {/* Серая шапка уходит под чёлку, но её содержимое опускается ниже
+          вырезa — иначе на iPhone статус-бар перекрывает логотип */}
+      <div className="rounded-b-[40px] bg-grey px-4 pt-[calc(1rem+env(safe-area-inset-top))] pb-8">
         <Image
           src={logoMark}
           alt="Kosh Kusé"
