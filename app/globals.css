@@ -167,6 +167,84 @@
     background-image: var(--gradient-tabs);
     pointer-events: none;
   }
+  /* Материал стекла: тонкая подсветка кромок + мягкая внешняя тень.
+     Само преломление даёт GlassLayer (карта смещения в SVG-фильтре),
+     потому что backdrop-filter здесь занят быть не может. */
+  .backdrop-glass {
+    --glass-tint: 0.28;
+    isolation: isolate;
+    background-color: rgba(255, 255, 255, var(--glass-tint));
+    /* Только внешняя тень: фаска живёт на ::after, иначе её закрашивает
+       бликовый слой, лежащий выше. */
+    box-shadow:
+      0 6px 16px rgba(0, 0, 0, 0.13),
+      0 1px 3px rgba(0, 0, 0, 0.1);
+  }
+  /* Вариант для мелких элементов (активная иконка 48px). Заливка слабее,
+     чем у панели: при плотной заливке круг превращается в серое пятно.
+     Затенение только сверху и снизу — по всем четырём сторонам оно на
+     круге 48px замыкается в тёмное кольцо. */
+  .backdrop-glass-sm {
+    --glass-tint: 0.2;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+  }
+  .backdrop-glass-sm::after {
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.85),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.65),
+      inset 0 3px 4px -3px rgba(0, 0, 0, 0.075),
+      inset 0 -3px 4px -3px rgba(0, 0, 0, 0.045);
+  }
+  /* Купольный блик: вытянутое световое пятно ближе к верху + отражённый
+     подсвет снизу. Именно пятно, а не равномерная засветка, читается как
+     выпуклая поверхность. */
+  .backdrop-glass::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    background:
+      radial-gradient(
+        58% 62% at 50% 8%,
+        rgba(255, 255, 255, 0.72) 0%,
+        rgba(255, 255, 255, 0.22) 45%,
+        rgba(255, 255, 255, 0) 78%
+      ),
+      radial-gradient(
+        70% 50% at 50% 104%,
+        rgba(255, 255, 255, 0.4) 0%,
+        rgba(255, 255, 255, 0) 72%
+      ),
+      /* свет, собравшийся на боковых скруглениях */
+      radial-gradient(
+        26% 78% at 0% 50%,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0) 76%
+      ),
+      radial-gradient(
+        26% 78% at 100% 50%,
+        rgba(255, 255, 255, 0.55) 0%,
+        rgba(255, 255, 255, 0) 76%
+      ),
+      linear-gradient(
+        160deg,
+        rgba(255, 255, 255, 0.2) 0%,
+        rgba(255, 255, 255, 0) 40%
+      );
+    /* Фаска поверх бликов: inset-тень рисуется над собственным фоном
+       элемента, поэтому здесь она не тонет и повторяет border-radius. */
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 1),
+      inset 0 -1px 0 rgba(255, 255, 255, 0.9),
+      inset 0 0 0 1px rgba(255, 255, 255, 0.55),
+      inset 0 5px 6px -5px rgba(0, 0, 0, 0.1),
+      inset 0 -5px 6px -5px rgba(0, 0, 0, 0.07),
+      inset 7px 0 8px -7px rgba(0, 0, 0, 0.075),
+      inset -7px 0 8px -7px rgba(0, 0, 0, 0.075);
+  }
   .bg-gradient-info {
     background-image: var(--gradient-info);
   }
