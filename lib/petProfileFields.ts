@@ -3,7 +3,15 @@
 export type ChoiceOption = { id: string; label: string };
 
 export type PetProfileField =
-  | { kind: "choice"; id: string; label: string; options: ChoiceOption[] }
+  | {
+      kind: "choice";
+      id: string;
+      label: string;
+      options: ChoiceOption[];
+      // Если задано — над вариантами появляется поле ввода: можно выбрать
+      // чип (он подставится в поле) или вписать свой вариант
+      input?: { placeholder: string };
+    }
   | { kind: "text"; id: string; placeholder: string };
 
 export const PET_PROFILE_FIELDS: PetProfileField[] = [
@@ -11,12 +19,12 @@ export const PET_PROFILE_FIELDS: PetProfileField[] = [
     kind: "choice",
     id: "breed",
     label: "Порода",
+    input: { placeholder: "Введите породу" },
     options: [
       { id: "metis", label: "Метис" },
       { id: "british", label: "Британец" },
       { id: "maine-coon", label: "Мейн-кун" },
       { id: "sphynx", label: "Сфинкс" },
-      { id: "other", label: "Другой" },
     ],
   },
   {
