@@ -183,7 +183,12 @@ export default async function Home({
       </div>
 
       <nav className="fixed inset-x-4 bottom-[calc(8px+env(safe-area-inset-bottom))] z-10 mx-auto flex max-w-89.5 items-center justify-between gap-2 overflow-hidden rounded-full p-2 backdrop-glass">
-        <GlassLayer />
+        {/* Дефолты (chromaticAberration 2, strength 26, blur 1) на контрастных
+            иконках под баром давали цветные разводы вместо мягкого стекла —
+            смещение снижено и блюр поднят, чтобы деталь фона гасла раньше, чем
+            успевает разъехаться по каналам. chromaticAberration=1 — по вкусу:
+            едва заметный цветной кант по кромке, а не полноценные разводы. */}
+        <GlassLayer depth={8} strength={12} chromaticAberration={1} blur={4} />
         {TABS.map((tab, index) => (
           <button
             key={tab.label}
@@ -194,7 +199,7 @@ export default async function Home({
               }`}
           >
             {index === 0 && (
-              <GlassLayer depth={5} strength={14} chromaticAberration={1} blur={4} />
+              <GlassLayer depth={5} strength={8} chromaticAberration={1} blur={4} />
             )}
             <Image
               src={tab.icon}
