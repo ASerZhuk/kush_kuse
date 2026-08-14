@@ -115,6 +115,11 @@
      100%, чтобы у центра дольше держался серо-белый (тот же приём, что у
      --gradient-300). */
   --gradient-600: linear-gradient(135deg, #edeef0 0%, #9dbbfa 350%);
+  /* Карточка профиля на /profile: тот же случай потери поворота при
+     экспорте (см. --gradient-200/300/600), но здесь эллипс всё же
+     radial — восстановлен как есть, просто со смещённым центром
+     (156.61% 120.7%, снизу-справа от карточки). */
+  --gradient-700: radial-gradient(142.21% 97.97% at 156.61% 120.7%, #e4f1db 0%, #edeef0 100%);
   /* Обводка сториз (border-image из Figma; здесь как фон-подложка,
      чтобы работало скругление) */
   --gradient-story: radial-gradient(88.92% 50% at 50% 50%, #fe2666 0%, #eed1cc 100%);
@@ -148,6 +153,9 @@
   }
   .bg-gradient-600 {
     background-image: var(--gradient-600);
+  }
+  .bg-gradient-700 {
+    background-image: var(--gradient-700);
   }
   .bg-gradient-story {
     background-image: var(--gradient-story);

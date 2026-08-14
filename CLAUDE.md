@@ -68,3 +68,13 @@ When reading code, skip:
 - **Tailwind v4**: uses CSS variables in `@theme` block; custom scales for colors, gradients, shadows. Check `globals.css` before adding new utility tokens.
 - **Path alias**: `@/*` maps to repo root.
 - **SVG icons**: React components in `components/icons/*`, static SVG assets in `app/assets/*.svg` (imported via `next/image`).
+
+<!-- BEGIN:nextjs-agent-rules -->
+
+# This is NOT the Next.js you know
+
+This version has breaking changes — APIs, conventions, and file structure may all differ from your training data. Read the relevant guide in `node_modules/next/dist/docs/` (resolved from this file's directory; in monorepos the `next` package may not be visible from the repo root) before writing any code. Heed deprecation notices.
+
+This block is written and re-added by `next dev` — verify at `node_modules/next/dist/server/lib/generate-agent-files.js`. Removing it from a diff only re-creates the uncommitted change; committing it with your work keeps the tree clean.
+
+<!-- END:nextjs-agent-rules -->
