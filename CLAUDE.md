@@ -23,6 +23,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
   - Routes: `/home`, `/ration`, `/health`, `/chat`, `/profile`
 - **Onboarding**: `/invite/*` (pet name, profile form, ration picker) → `/checkout`
 - **Checkout** (`app/checkout/page.tsx`): single client component, enum-based step state (Address → Card → Review → Success), no sub-routes
+- **Chat** (`app/(tabs)/chat/page.tsx`): single client component, mocked conversation with "miss Kusé" — no backend. Bot messages arrive after a delay via a messenger-style typing indicator (`TypingBubble`); sending a message or a suggestion chip, or clicking "Пригласить специалиста", triggers the same typing → canned-reply flow. All state is local `useState`, reset on refresh.
 
 ### UI Kit & Components
 
