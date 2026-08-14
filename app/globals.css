@@ -76,6 +76,10 @@
   --color-grey-400: #666666;
   --color-grey-500: #333333;
 
+  /* Primary (розовый акцент бренда) */
+  --color-primary-100: #fd779f;
+  --color-primary-200: #ffc6d5;
+
   /* Status colors */
   --color-success-100: #cff2dc;
   --color-success-200: #2ba057;
@@ -104,6 +108,13 @@
   --gradient-300: linear-gradient(150deg, #edeef0 0%, #ffc6d5 250%);
   --gradient-400: radial-gradient(#e4f1db 0%, #edeef0 100%);
   --gradient-500: radial-gradient(#9dbbfa 0%, #edeef0 100%);
+  /* Карточка питомца на /health: Figma отдаёт это как radial-gradient с
+     предупреждением «rotation is not supported» — на самом деле это
+     linear-gradient(135deg, серый → синий), Figma просто теряет поворот
+     при экспорте (см. --gradient-200/300). Стоп синего вынесен далеко за
+     100%, чтобы у центра дольше держался серо-белый (тот же приём, что у
+     --gradient-300). */
+  --gradient-600: linear-gradient(135deg, #edeef0 0%, #9dbbfa 350%);
   /* Обводка сториз (border-image из Figma; здесь как фон-подложка,
      чтобы работало скругление) */
   --gradient-story: radial-gradient(88.92% 50% at 50% 50%, #fe2666 0%, #eed1cc 100%);
@@ -134,6 +145,9 @@
   }
   .bg-gradient-500 {
     background-image: var(--gradient-500);
+  }
+  .bg-gradient-600 {
+    background-image: var(--gradient-600);
   }
   .bg-gradient-story {
     background-image: var(--gradient-story);

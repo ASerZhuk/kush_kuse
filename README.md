@@ -53,6 +53,7 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 | `--color-error-100/200` | `#fbe0e0` / `#b51717` | `Status variant="error"` |
 | `--color-warning-100/200` | `#fde8d2` / `#f67f09` | `Status variant="warning"` |
 | `--color-info-100/200` | `#e3ebf9` / `#2d67d2` | `Status variant="info"` |
+| `--color-primary-100/200` | `#fd779f` / `#ffc6d5` | розовый акцент бренда (напр. точка ожидающего шага в `CourierSheet`, кружок выбранного адреса на `/checkout`) |
 
 ### Типографика
 
@@ -94,17 +95,31 @@ Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/bui
 
 | Компонент | Назначение |
 | --- | --- |
-| `Button` | Единый стиль для всех действий: `variant`: `primary` (жидкое стекло `.backdrop-glass-clear`, без фоновой заливки) / `secondary` (плоский, `bg-grey`); поддерживает `href` (рендерится как `Link`), `iconOnly`, `fullWidth`, `subtitle` (доп. строка `Caption-S` под заголовком `Body-M`, напр. цена) |
+| `Button` | Единый стиль для всех действий: `variant`: `primary` (жидкое стекло `.backdrop-glass-clear`, без фоновой заливки) / `secondary` (плоский, `bg-grey`) / `ghost` (совсем без фона и тени, напр. стрелка «назад» в шапке); поддерживает `href` (рендерится как `Link`), `iconOnly`, `fullWidth`, `subtitle` (доп. строка `Caption-S` под заголовком `Body-M`, напр. цена) |
 | `Status` | Пилюля-бейдж, `variant`: `success` / `error` / `warning` / `info` / `neutral` (белая заливка, напр. «Свободно», «Месяц в подарок») |
 | `Eyebrow` | Мелкая uppercase-подпись (`Caption-S`, `Grey/400`); один сегмент — `children`, несколько — `items` через точку-разделитель 4×4px (`textClassName`/`dotClassName` задаются раздельно) |
 | `GlassArrow` | Стеклянный кружок 32px со стрелкой вверх (`backdrop-glass-sm` + `GlassLayer`), вынесен из повторявшейся вёрстки на `/home` |
-| `Chip` | Тоггл-чип (`selected` меняет заливку с `bg-grey` на `bg-grey-500`) |
+| `AddonIcon` | Кружок 40×40 с `LogoMark`: `active` — розовый `gradient-300` + `text-dark`, иначе `bg-grey-50` + `text-grey-300`. Общая иконка `AddonItem`/`DeliveryItem` |
+| `AddonItem` | Строка допа: `AddonIcon` + заголовок/описание/цена + toggle-пилюля 48×48 (`checked` — тёмная с галочкой, иначе — с плюсом) |
+| `DeliveryItem` | Упрощённая строка (без своей карточки-обёртки, без toggle) — иконка + заголовок/описание + произвольный `trailing`-текст справа |
+| `Chip` | Тоггл-чип (`selected` меняет заливку с `bg-grey` на `bg-grey-500`); с `className="w-full"` — вертикальный список выбора (см. `RecipeSheet`) |
 | `Input` | Текстовое поле с состоянием `error`/`errorMessage` |
 | `Toast` | Success-уведомление (`backdrop-glass` + `GlassLayer`, `gradient-toast-success` под иконкой), автоскрытие через 3с |
 | `StoryModal` | Полноэкранная модалка сторис (portal, `gradient-300`), scale+fade появление за 350мс на `cubic-bezier(0.22,1,0.36,1)` |
+| `BottomSheet` | Общая механика шторки снизу (portal, затемнение, slide-up за 300мс); `trigger`/`children` — render-props с `open`/`close`. На ней построены `CourierSheet`, `SubscriptionSheet`, `RecipeSheet` |
+| `CourierSheet` | Шторка «Доставка» — таймлайн шагов (готово — тёмный кружок с галочкой из `check.svg`; ожидание — `bg-grey-50` + точка `bg-primary-100`) с соединительными палочками 1×12px между шагами |
+| `SubscriptionSheet` | Шторка «Подписка» — три действия (`Button variant="secondary"`: пропустить доставку / сменить рецепт / пауза) + пояснение |
+| `RecipeSheet` | Шторка «Рецепт» — вертикальный список `Chip` (`w-full`) с выбором рациона |
 | `GlassLayer` | SVG-based liquid glass слой (см. выше) |
 | `BottomNav` | Общий нижний таббар (5 вкладок): рендерится один раз в `app/(tabs)/layout.tsx`, активная вкладка — из `usePathname`, переход — `router.push` (с ручным `router.prefetch()` всех вкладок на монтировании), пилюля едет между табами `translateX`'ом без перемонтирования `GlassLayer` |
 | `PetName` | Клиентский лист (`useSearchParams`), подставляет `?name=` из онбординга поверх статического `/home`; используется внутри `<Suspense>`, чтобы страница осталась `○ Static` |
-| `ArrowLeftIcon`, `CheckIcon`, `CheckCircleIcon`, `TruckIcon` | SVG-иконки как React-компоненты (`stroke="currentColor"`) |
+| `SubscriptionProvider` / `useSubscription` | Контекст-заглушка на время без бэкенда (`components/SubscriptionContext.tsx`, подключён в корневом `layout.tsx`): `active`-стейт живёт в памяти клиента — переживает переходы между страницами, обнуляется при обновлении. `/checkout` вызывает `activate()` на финальном шаге |
+| `RationSubscriptionSection` | Клиентский переключатель на `/ration`: без подписки — промо-карточка со ссылкой на `/checkout`, с активной — `ActiveSubscriptionCard` |
+| `ActiveSubscriptionCard` | Карточка активной подписки (бейдж «Активна», цена, следующий платёж, `RecipeSheet` вместо статичной кнопки) |
+| `ArrowLeftIcon`, `CheckIcon`, `CheckCircleIcon`, `TruckIcon`, `LogoMark` | SVG-иконки как React-компоненты (`stroke`/`fill="currentColor"`) |
 
 Остальные иконки — статические SVG в `app/assets/*.svg`, подключаются через `next/image`.
+
+### Чекаут (`/checkout`)
+
+Один клиентский компонент с `enum Step { Address, Card, Review, Success }` — переключение шагов через `useState`, без отдельных роутов; прогресс — три точки в шапке (`w-4 bg-dark` — активная), стрелка «назад» переключает на предыдущий `Step`. Маски полей карты — простые функции форматирования (`formatCardNumber`/`formatExpiry`/`formatCvc`), без внешних зависимостей.

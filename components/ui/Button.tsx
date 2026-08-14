@@ -14,6 +14,8 @@ const variantClasses: Record<ButtonVariant, string> = {
   // заметным. Тени в макете у secondary нет вообще: она плоская, приподнята
   // только primary. На нажатии темнеет до сплошного Grey/Grey 100.
   secondary: "gap-2 text-dark bg-grey active:bg-grey-100",
+  // Без фона и тени вообще — напр. стрелка "назад" в шапке.
+  ghost: "gap-2 text-dark active:opacity-60",
 };
 
 export default function Button({

@@ -31,7 +31,7 @@ export default function Invite() {
         <Input placeholder="Код приглашения" className="mt-7" />
 
         <div className="mt-3 flex gap-3">
-          <Button variant="secondary" iconOnly href="/">
+          <Button variant="ghost" iconOnly href="/">
             <ArrowLeftIcon />
           </Button>
           <Button variant="primary" fullWidth={false} href="/invite/accepted">
