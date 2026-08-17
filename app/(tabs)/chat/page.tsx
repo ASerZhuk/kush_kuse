@@ -141,7 +141,7 @@ export default function Chat() {
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white pb-52">
-      <div className="flex items-center justify-between gap-2 px-margin pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
+      <div className="flex flex-wrap items-center justify-between gap-2 px-margin pt-[calc(1rem+env(safe-area-inset-top))] pb-4">
         <div className="flex items-center gap-3">
           <div className="flex h-10 w-10 flex-none items-center justify-center rounded-2xl bg-gradient-300 text-dark">
             <Image src={logoMark} alt="" className="h-3 w-5" />
@@ -161,7 +161,7 @@ export default function Chat() {
           <Button
             variant="primary"
             fullWidth={false}
-            className="flex-none! w-auto px-4 text-body-s"
+            className="ml-auto flex-none! w-auto px-4 text-body-s"
             onClick={handleInviteSpecialist}
           >
             Пригласить специалиста

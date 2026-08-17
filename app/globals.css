@@ -457,3 +457,19 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
 }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+/* iOS увеличивает весь visual viewport при фокусе на поле с текстом меньше
+   16px. В standalone PWA этот масштаб может сохраниться после повторного
+   открытия и выглядеть как горизонтальный overflow. */
+@supports (-webkit-touch-callout: none) {
+  input:not([type="file"]),
+  textarea,
+  select {
+    font-size: 16px;
+  }
+}
