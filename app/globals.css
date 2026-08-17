@@ -266,10 +266,13 @@
      вообще (см. GlassLayer). Поэтому объём даёт сам материал: почти
      прозрачная заливка + направленная кромка + отрыв от поверхности. */
   .backdrop-glass-clear {
-    /* Gradient 200 из макета — не геометрический градиент, а сплошной
-       #999999 с opacity 4%. Светотеневой профиль добавляет отдельно Glass. */
-    --glass-rgb: 153, 153, 153;
-    --glass-tint: 0.04;
+    /* Сама кнопка прозрачна. Gradient 200 лежит отдельным ровным слоем под
+       GlassLayer, как в Figma: Fill → Glass → фаска → контент. */
+    --glass-tint: 0;
+    --glass-fill-rgb: 153, 153, 153;
+    --glass-fill-start-opacity: 0.12;
+    --glass-fill-mid-opacity: 0.035;
+    --glass-fill-end-opacity: 0;
     /* Drop shadow из стиля Common: X0 Y4, blur 11.1, spread 0,
        #4C4C4C 5%. Верхний inset-слой из --shadow-button здесь не используем:
        он подсвечивал всю верхнюю кромку вопреки направлению света −45°.
@@ -277,22 +280,12 @@
        CSS так себя и ведёт, сквозь прозрачную заливку не проступает. */
     box-shadow: 0 4px 11.1px rgba(76, 76, 76, 0.05);
   }
-  /* Внутренняя светотень самого Glass. Это не часть Gradient 200: заливка
-     выше остаётся ровной #999/4%. При −45° рядом с яркой верхней левой
-     фаской поверхность слегка темнее, а к нижнему правому углу собирается
-     мягкий отражённый свет. Коэффициенты умножены на макетные Light 80%. */
-  .backdrop-glass-clear::before {
-    content: "";
-    position: absolute;
-    inset: 0;
-    z-index: 0;
-    border-radius: inherit;
-    pointer-events: none;
-    background: linear-gradient(
-      var(--glass-light),
-      rgba(25, 25, 25, calc(var(--glass-light-intensity) * 0.0175)) 0%,
-      rgba(25, 25, 25, 0) 48%,
-      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.275)) 100%
+  .button-glass-fill {
+    background-image: linear-gradient(
+      to bottom right,
+      rgba(var(--glass-fill-rgb), var(--glass-fill-start-opacity)) 0%,
+      rgba(var(--glass-fill-rgb), var(--glass-fill-mid-opacity)) 52%,
+      rgba(var(--glass-fill-rgb), var(--glass-fill-end-opacity)) 100%
     );
   }
   /* Двойной класс, а не .backdrop-glass-clear::after: базовый
@@ -367,56 +360,73 @@
     background: none;
     box-shadow: none;
   }
-  .backdrop-glass.backdrop-glass-clear:disabled::before {
-    background: none;
+  /* Матрица Buttons из Figma: Primary / Secondary / Shadow × состояния.
+     Pressed меняет материал только у Primary; у остальных меняется лишь
+     цвет контента. Disable для всех вариантов общий. */
+  .button-secondary {
+    background-color: rgba(157, 157, 157, 0.05);
   }
-  /* Панель нижней навигации. Заливка слабее базовой (0.28 → 0.22): бар лежит
-     поверх контента, и чем он прозрачнее, тем сильнее читается преломление
-     под ним. Потерянный контраст возвращают кромка и более глубокая тень. */
-  .backdrop-glass-bar {
-    --glass-tint: 0.22;
+  .button-shadow {
+    background-color: transparent;
+  }
+  .button-ui:active:not(:disabled) {
+    color: var(--color-grey-400);
+  }
+  .button-primary:active:not(:disabled) {
+    --glass-fill-rgb: 255, 255, 255;
+    --glass-fill-start-opacity: 0.7;
+    --glass-fill-mid-opacity: 0.7;
+    --glass-fill-end-opacity: 0.7;
+  }
+  .button-ui:disabled {
+    color: var(--color-white);
+    background-color: var(--color-grey-100);
+    box-shadow: none;
+  }
+  .button-ui:disabled .button-caption {
+    color: var(--color-white);
+  }
+  .button-primary:disabled {
+    --glass-tint: 0;
+  }
+  .button-primary:disabled > [aria-hidden] {
+    display: none;
+  }
+  /* Figma trim-ит line box до cap-height. Без этого L с caption получался
+     заметно выше макетных 58px при тех же padding 10 и gap 12. */
+  .button-label,
+  .button-caption {
+    text-box-trim: trim-both;
+    text-box-edge: cap alphabetic;
+  }
+  /* TabBar 214:4827: 288×64, Gradient 200 4%, Background Blur 12,
+     inner highlight 1/1/1/-0.5 and outer shadow 0/1/8. */
+  .bottom-nav {
+    isolation: isolate;
+    background-color: rgba(153, 153, 153, 0.04);
+    -webkit-backdrop-filter: blur(6px);
+    backdrop-filter: blur(6px);
     box-shadow:
-      0 10px 30px -8px rgba(25, 25, 25, 0.22),
-      0 2px 8px -3px rgba(25, 25, 25, 0.14);
+      inset 1px 1px 1px -0.5px rgba(255, 255, 255, 0.75),
+      0 1px 8px rgba(0, 0, 0, 0.12);
   }
-  .backdrop-glass.backdrop-glass-bar::after {
-    background:
-      radial-gradient(
-        24% 110% at var(--glass-source-x) var(--glass-source-y),
-        rgba(255, 255, 255, 0.82) 0%,
-        rgba(255, 255, 255, 0.26) 30%,
-        rgba(255, 255, 255, 0) 66%
-      ),
-      radial-gradient(
-        24% 110% at var(--glass-reflect-x) var(--glass-reflect-y),
-        rgba(255, 255, 255, 0.46) 0%,
-        rgba(255, 255, 255, 0.13) 32%,
-        rgba(255, 255, 255, 0) 66%
-      );
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  /* Один Common Glass-круг переезжает под активной иконкой. Неактивные
+     пункты остаются без собственной поверхности. */
+  .bottom-nav-tab {
+    --glass-tint: 0;
+    box-shadow: 0 4px 11.1px rgba(76, 76, 76, 0.05);
   }
-  /* Активный таб. Единственное место, где заливка намеренно плотная: пилюля
-     лежит на стекле бара, а не на контенте, и без своего тела она на нём
-     теряется. */
-  .backdrop-glass-pill {
-    --glass-tint: 0.45;
-    box-shadow: 0 3px 10px -3px rgba(25, 25, 25, 0.24);
-  }
-  .backdrop-glass.backdrop-glass-pill::after {
-    background:
-      radial-gradient(
-        88% 88% at var(--glass-source-x) var(--glass-source-y),
-        rgba(255, 255, 255, 0.86) 0%,
-        rgba(255, 255, 255, 0.28) 30%,
-        rgba(255, 255, 255, 0) 64%
-      ),
-      radial-gradient(
-        88% 88% at var(--glass-reflect-x) var(--glass-reflect-y),
-        rgba(255, 255, 255, 0.48) 0%,
-        rgba(255, 255, 255, 0.12) 32%,
-        rgba(255, 255, 255, 0) 64%
-      );
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  .bottom-nav-tab::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 1;
+    border-radius: inherit;
+    pointer-events: none;
+    /* Figma экспортирует Base/Dark 45 с plus-lighter внутри нативного Glass.
+       В CSS тот же blend темнит прозрачный fallback, поэтому переносим его
+       итоговый вид: светлую полупрозрачную поверхность круга. */
+    background-color: rgba(255, 255, 255, 0.45);
   }
   .bg-gradient-toast-success {
     background-image: var(--gradient-toast-success);

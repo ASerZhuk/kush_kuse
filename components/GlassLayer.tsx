@@ -108,13 +108,7 @@ export default function GlassLayer({
 
     const redraw = () => {
       if (!supportsUrl) {
-        // Раньше здесь стояли захардкоженные blur(12px) saturate(1.8) —
-        // пропы blur/saturate/brightness сюда не долетали вообще, поэтому их
-        // подкрутка на странице никак не влияла на Safari. Смещения и цветной
-        // аберрации тут всё равно не будет: backdrop-filter умеет только
-        // стандартные функции (blur, saturate, brightness...), а не произвольный
-        // SVG-фильтр с раздельным сдвигом каналов — это ограничение WebKit,
-        // а не то, что можно докрутить пропом.
+        // Смещения backdrop здесь не будет: остаются стандартные функции.
         // Frost из Figma уже задан в пикселях, поэтому переносим его без
         // дополнительного множителя и не усиливаем размытие в fallback.
         const fallbackBlur = tokens?.frost ?? blur;
@@ -142,6 +136,7 @@ export default function GlassLayer({
         strength: geometry.strength,
         chromaticAberration: geometry.chromaticAberration,
       });
+
       setFilter(
         `url('${url}') blur(${geometry.blur}px) brightness(${brightness}) saturate(${saturate})`,
       );

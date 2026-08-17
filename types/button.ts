@@ -4,10 +4,13 @@ import type {
   ReactNode,
 } from "react";
 
-export type ButtonVariant = "primary" | "secondary" | "ghost";
+export type ButtonVariant = "primary" | "secondary" | "shadow" | "ghost";
+export type ButtonSize = "l" | "s";
 
 type ButtonBase = {
   variant?: ButtonVariant;
+  /** L — 48px, S — 40px. */
+  size?: ButtonSize;
   iconOnly?: boolean;
   fullWidth?: boolean;
   /** Необязательный подзаголовок под основным текстом (напр. цена). */

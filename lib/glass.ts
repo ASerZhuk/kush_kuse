@@ -15,15 +15,15 @@ export type GlassTokens = {
   lightAngle: number;
   /** Light, интенсивность, 0–100. */
   lightIntensity: number;
-  /** Refraction, 0–100. */
+  /** Refraction, проценты интерфейса Figma (0–100). */
   refraction: number;
-  /** Depth — толщина стенки линзы, 0–100. */
+  /** Depth — абсолютная глубина из Plugin API Figma (не проценты). */
   depth: number;
-  /** Dispersion — хроматическая аберрация, 0–100. */
+  /** Dispersion — проценты интерфейса Figma (0–100). */
   dispersion: number;
   /** Frost — размытие подложки. Единственный параметр Figma уже в пикселях. */
   frost: number;
-  /** Splay — растекание преломления к кромке, 0–100. */
+  /** Splay — проценты интерфейса Figma (0–100). */
   splay: number;
 };
 
@@ -43,21 +43,24 @@ const clamp = (value: number, min: number, max: number) =>
 /**
  * Перевод токенов в геометрию карты смещения.
  *
- * Frost переносится как есть — это пиксели. Остальные четыре параметра Figma
- * держит в безразмерной шкале 0–100 и формулу не публикует, поэтому
- * коэффициенты ниже подобраны по эталону из макета на пилюле 48px. Считаем от
- * меньшей стороны: на кнопке это высота, и от неё же зависит, какая часть
- * поверхности приходится на преломляющую кромку.
+ * Frost и Depth Plugin API отдаёт абсолютными числами; Refraction, Dispersion
+ * и Splay в интерфейсе представлены процентами. В SVG-карте Depth ограничен
+ * половиной меньшей стороны: Figma умеет преломлять всю выпуклую поверхность,
+ * а separable-карта должна сохранить хотя бы тонкий нейтральный центр.
  */
 export function glassGeometry(tokens: GlassTokens, minSide: number) {
   const half = minSide / 2;
 
   return {
-    // Стенка не может быть толще половины элемента: иначе нейтральный центр
-    // карты смещения схлопывается и преломляется вся плоскость, а не кромка.
-    depth: clamp((tokens.depth / 100) * half, 2, half - 1),
-    // Splay расширяет зону преломления к краю, то есть усиливает смещение.
-    strength: (tokens.refraction / 100) * half * (0.5 + tokens.splay / 100),
+    // Раньше Depth=31 ошибочно трактовался как 31%, давая всего 7.44px на
+    // кнопке 48px. Это и оставляло плоский центр, которого нет у Figma Glass.
+    depth: clamp(tokens.depth, 2, Math.max(2, half - 1)),
+    // Refraction задаёт амплитуду, Splay слегка расширяет видимый снос, но не
+    // должен превращать его в отдельный второй множитель полной силы.
+    strength:
+      (tokens.refraction / 100) *
+      half *
+      (0.75 + (tokens.splay / 100) * 0.5),
     chromaticAberration: (tokens.dispersion / 100) * 3,
     blur: tokens.frost,
   };
