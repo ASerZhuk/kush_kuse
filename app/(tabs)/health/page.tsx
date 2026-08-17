@@ -4,11 +4,13 @@ import { useState } from "react";
 import Image from "next/image";
 import AddEventSheet from "@/components/AddEventSheet";
 import Button from "@/components/ui/Button";
-import GlassLayer from "@/components/GlassLayer";
+import PetAvatar from "@/components/PetAvatar";
 import Status from "@/components/ui/Status";
 import CheckIcon from "@/components/icons/CheckIcon";
-import catPhoto from "@/app/assets/temporary/4198c60aabe1247b9ab2cc3d90498749dc36c40e.png";
+import { nextId } from "@/lib/id";
 import penIcon from "@/app/assets/pen.svg";
+
+const PET_NAME = "Фрэнк";
 
 const STATS = [
   { label: "Порода", value: "Метис" },
@@ -45,26 +47,9 @@ export default function Health() {
     <div className="flex min-h-full flex-1 flex-col bg-white pb-32">
       <div>
         <div className="flex flex-col items-center rounded-b-3xl bg-gradient-600 px-8 pt-[calc(2rem+env(safe-area-inset-top))] pb-6">
-          <div className="relative">
-            <div className="h-28.5 w-29.5 overflow-hidden rounded-4xl bg-white p-1">
-              <Image
-                src={catPhoto}
-                alt="Фрэнк"
-                sizes="118px"
-                className="h-full w-full origin-[50%_18%] scale-180 rounded-[26px] object-cover object-top"
-              />
-            </div>
-            <button
-              type="button"
-              aria-label="Изменить фото"
-              className="backdrop-glass backdrop-glass-sm absolute -bottom-1 -right-1 flex h-8 w-8 items-center justify-center overflow-hidden rounded-full"
-            >
-              <GlassLayer depth={4} strength={10} chromaticAberration={1} blur={2} />
-              <Image src={penIcon} alt="" className="relative z-10 h-4 w-4" />
-            </button>
-          </div>
+          <PetAvatar name={PET_NAME} />
 
-          <h2 className="mt-4 font-display text-subtitle text-dark">Фрэнк</h2>
+          <h2 className="mt-4 font-display text-subtitle text-dark">{PET_NAME}</h2>
 
           <Button
             variant="primary"
@@ -129,10 +114,7 @@ export default function Health() {
           <h1 className="font-display text-h2 text-dark">События</h1>
           <AddEventSheet
             onAdd={(event) =>
-              setEvents((prev) => [
-                { id: `${Date.now()}`, ...event },
-                ...prev,
-              ])
+              setEvents((prev) => [{ id: nextId("event"), ...event }, ...prev])
             }
           />
         </div>

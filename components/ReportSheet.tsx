@@ -1,9 +1,10 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import { useDisclosure } from "@/lib/useDisclosure";
 import checkIcon from "@/app/assets/check.svg";
 
 const ITEMS = [
@@ -16,22 +17,7 @@ const ITEMS = [
 const TRANSITION_MS = 300;
 
 export default function ReportSheet({ children }: { children: ReactNode }) {
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const closeTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const open = () => {
-    clearTimeout(closeTimeout.current);
-    setMounted(true);
-    requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
-  };
-
-  const close = () => {
-    setVisible(false);
-    closeTimeout.current = setTimeout(() => setMounted(false), TRANSITION_MS);
-  };
-
-  useEffect(() => () => clearTimeout(closeTimeout.current), []);
+  const { mounted, visible, open, close } = useDisclosure(TRANSITION_MS);
 
   return (
     <>
@@ -57,6 +43,8 @@ export default function ReportSheet({ children }: { children: ReactNode }) {
             />
 
             <div
+              role="dialog"
+              aria-modal="true"
               className={`relative w-full max-w-md rounded-t-[40px] bg-white p-8 pb-[calc(2rem+env(safe-area-inset-bottom))] transition-transform duration-300 ease-out ${
                 visible ? "translate-y-0" : "translate-y-full"
               }`}

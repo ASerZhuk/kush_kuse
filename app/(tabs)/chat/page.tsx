@@ -1,12 +1,13 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
 import Chip from "@/components/ui/Chip";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Status from "@/components/ui/Status";
 import GlassLayer from "@/components/GlassLayer";
+import { nextId } from "@/lib/id";
 import logoMark from "@/app/assets/Logo.svg";
 import clipIcon from "@/app/assets/clip.svg";
 import arrowUpIcon from "@/app/assets/arrow-up.svg";
@@ -24,17 +25,27 @@ const SPECIALIST_REPLY =
 
 const SUGGESTIONS = ["Она сегодня мало ела", "Какой у неё вес?", "Когда на прививку"];
 
-let idCounter = 0;
-const nextId = () => `m${idCounter++}`;
+// Первое сообщение бота ждёт дольше остальных: пустой экран сразу после
+// открытия выглядит сломанным, поэтому «печатает…» стартует раньше.
+const GREETING_DELAYS = { typing: 900, reply: 2400 };
+const REPLY_DELAYS = { typing: 400, reply: 1800 };
 
-function Bubble({ role, text }: { role: Message["role"]; text: string }) {
+/** Появление пузыря: класс перехода включается на следующем кадре после
+ * монтирования — иначе браузер не увидит смены состояния и анимации не будет. */
+function useAppear() {
   const [visible, setVisible] = useState(false);
-  const isBot = role === "bot";
 
   useEffect(() => {
     const raf = requestAnimationFrame(() => setVisible(true));
     return () => cancelAnimationFrame(raf);
   }, []);
+
+  return visible;
+}
+
+function Bubble({ role, text }: { role: Message["role"]; text: string }) {
+  const visible = useAppear();
+  const isBot = role === "bot";
 
   return (
     <div
@@ -48,12 +59,7 @@ function Bubble({ role, text }: { role: Message["role"]; text: string }) {
 }
 
 function TypingBubble() {
-  const [visible, setVisible] = useState(false);
-
-  useEffect(() => {
-    const raf = requestAnimationFrame(() => setVisible(true));
-    return () => cancelAnimationFrame(raf);
-  }, []);
+  const visible = useAppear();
 
   return (
     <div
@@ -79,19 +85,37 @@ export default function Chat() {
   const [specialistInvited, setSpecialistInvited] = useState(false);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // Первое сообщение бота приходит с задержкой и через "печатает…",
-  // как в обычных мессенджерах — иначе пустой экран выглядит сломанным.
-  useEffect(() => {
-    const showTyping = setTimeout(() => setTyping(true), 900);
-    const showGreeting = setTimeout(() => {
-      setTyping(false);
-      setMessages([{ id: nextId(), role: "bot", text: GREETING }]);
-    }, 2400);
-    return () => {
-      clearTimeout(showTyping);
-      clearTimeout(showGreeting);
-    };
+  // Все отложенные ответы бота живут здесь: иначе таймеры доигрывали после
+  // ухода со страницы, а два быстрых сообщения подряд гасили «печатает…»
+  // друг у друга.
+  const replyTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+  const clearReplyTimers = useCallback(() => {
+    replyTimers.current.forEach(clearTimeout);
+    replyTimers.current = [];
   }, []);
+
+  const scheduleReply = useCallback(
+    (text: string, delays: { typing: number; reply: number }) => {
+      clearReplyTimers();
+      replyTimers.current.push(
+        setTimeout(() => setTyping(true), delays.typing),
+        setTimeout(() => {
+          setTyping(false);
+          setMessages((prev) => [
+            ...prev,
+            { id: nextId("bot"), role: "bot", text },
+          ]);
+        }, delays.reply),
+      );
+    },
+    [clearReplyTimers],
+  );
+
+  useEffect(() => {
+    scheduleReply(GREETING, GREETING_DELAYS);
+    return clearReplyTimers;
+  }, [scheduleReply, clearReplyTimers]);
 
   useEffect(() => {
     scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -101,25 +125,18 @@ export default function Chat() {
     const value = text.trim();
     if (!value) return;
 
-    setMessages((prev) => [...prev, { id: nextId(), role: "user", text: value }]);
+    setMessages((prev) => [
+      ...prev,
+      { id: nextId("user"), role: "user", text: value },
+    ]);
     setInput("");
-
-    setTimeout(() => setTyping(true), 400);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages((prev) => [...prev, { id: nextId(), role: "bot", text: CANNED_REPLY }]);
-    }, 1800);
+    scheduleReply(CANNED_REPLY, REPLY_DELAYS);
   };
 
   const handleInviteSpecialist = () => {
     if (specialistInvited) return;
     setSpecialistInvited(true);
-
-    setTimeout(() => setTyping(true), 400);
-    setTimeout(() => {
-      setTyping(false);
-      setMessages((prev) => [...prev, { id: nextId(), role: "bot", text: SPECIALIST_REPLY }]);
-    }, 1800);
+    scheduleReply(SPECIALIST_REPLY, REPLY_DELAYS);
   };
 
   return (
@@ -183,6 +200,7 @@ export default function Chat() {
             onChange={(event) => setInput(event.target.value)}
             onKeyDown={(event) => event.key === "Enter" && handleSend(input)}
             placeholder="Напишите вопрос..."
+            aria-label="Сообщение"
             className="h-full flex-1 bg-transparent text-body-s text-dark outline-none placeholder:text-grey-300"
           />
           <button

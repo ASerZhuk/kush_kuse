@@ -1,6 +1,6 @@
 import BottomNav from "@/components/BottomNav";
 
-export default function TabsLayout({ children }: { children: React.ReactNode }) {
+export default function TabsLayout({ children }: LayoutProps<"/">) {
   return (
     <>
       {children}

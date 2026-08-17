@@ -5,14 +5,17 @@ import { useEffect, useRef, useState } from "react";
 import Button from "@/components/ui/Button";
 import photoIcon from "@/app/assets/photo_icon.svg";
 
+const MAX_PHOTO_BYTES = 10 * 1024 * 1024;
+
 export default function InviteAccepted() {
   const inputRef = useRef<HTMLInputElement>(null);
   const [photo, setPhoto] = useState<string | null>(null);
 
+  // Отзываем blob-URL при смене фото и при уходе со страницы, иначе файл
+  // висит в памяти вкладки до полной перезагрузки.
   useEffect(() => {
-    return () => {
-      if (photo) URL.revokeObjectURL(photo);
-    };
+    if (!photo) return;
+    return () => URL.revokeObjectURL(photo);
   }, [photo]);
 
   return (
@@ -45,7 +48,12 @@ export default function InviteAccepted() {
         className="hidden"
         onChange={(e) => {
           const file = e.target.files?.[0];
-          if (file) setPhoto(URL.createObjectURL(file));
+          // accept="image/*" — подсказка диалогу выбора, а не проверка:
+          // подсунуть можно любой файл. Blob-URL от не-картинки только сломает
+          // <Image>, поэтому тип и размер проверяем сами.
+          if (!file || !file.type.startsWith("image/")) return;
+          if (file.size > MAX_PHOTO_BYTES) return;
+          setPhoto(URL.createObjectURL(file));
         }}
       />
 

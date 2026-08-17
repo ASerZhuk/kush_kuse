@@ -1,9 +1,11 @@
 "use client";
 
-import { useEffect, useLayoutEffect, useRef, useState } from "react";
+import { useLayoutEffect, useRef, useState } from "react";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 import GlassLayer from "@/components/GlassLayer";
+import { GLASS_COMMON } from "@/lib/glass";
 import homeIcon from "@/app/assets/home.svg";
 import carIcon from "@/app/assets/car.svg";
 import heartIcon from "@/app/assets/heart.svg";
@@ -16,25 +18,18 @@ const TABS = [
   { icon: heartIcon, label: "Здоровье", href: "/health" },
   { icon: messageIcon, label: "Чат", href: "/chat" },
   { icon: userIcon, label: "Профиль", href: "/profile" },
-];
+] as const;
 
 export default function BottomNav() {
   const pathname = usePathname();
-  const router = useRouter();
   const activeIndex = Math.max(
     0,
     TABS.findIndex((tab) => pathname.startsWith(tab.href)),
   );
 
   const navRef = useRef<HTMLElement>(null);
-  const itemRefs = useRef<(HTMLButtonElement | null)[]>([]);
+  const itemRefs = useRef<(HTMLAnchorElement | null)[]>([]);
   const [pillX, setPillX] = useState<number>();
-
-  // router.push (в отличие от Link) сам ничего не префетчит — без этого
-  // каждое переключение таба в проде ждёт RSC-пейлоад с нуля.
-  useEffect(() => {
-    TABS.forEach((tab) => router.prefetch(tab.href));
-  }, [router]);
 
   // Пилюля — один смонтированный элемент, который едет между табами
   // translateX'ом, а не перемонтируется на каждый таб: так GlassLayer не
@@ -62,29 +57,32 @@ export default function BottomNav() {
     // скроллящегося контента вместо перерисовки блюра каждый кадр.
     <nav
       ref={navRef}
-      className="fixed inset-x-4 bottom-[calc(8px+env(safe-area-inset-bottom))] z-10 mx-auto flex max-w-89.5 items-center justify-between gap-2 overflow-hidden rounded-full p-2 backdrop-glass will-change-transform transform-[translateZ(0)]"
+      className="fixed inset-x-4 bottom-[calc(8px+env(safe-area-inset-bottom))] z-10 mx-auto flex max-w-89.5 items-center justify-between gap-2 overflow-hidden rounded-full p-2 backdrop-glass backdrop-glass-bar will-change-transform transform-[translateZ(0)]"
     >
       {/* Дефолты (chromaticAberration 2, strength 26, blur 1) на контрастных
           иконках под баром давали цветные разводы вместо мягкого стекла —
           смещение снижено и блюр поднят, чтобы деталь фона гасла раньше, чем
           успевает разъехаться по каналам. chromaticAberration=1 — по вкусу:
           едва заметный цветной кант по кромке, а не полноценные разводы. */}
-      <GlassLayer depth={8} strength={12} chromaticAberration={1} blur={4} />
+      <GlassLayer tokens={GLASS_COMMON} />
 
       {pillX !== undefined && (
         <div
-          className="absolute left-0 top-2 z-10 h-12 w-12 overflow-hidden rounded-full backdrop-glass backdrop-glass-sm transition-transform duration-300 ease-out will-change-transform"
+          className="absolute left-0 top-2 z-10 h-12 w-12 overflow-hidden rounded-full backdrop-glass backdrop-glass-pill transition-transform duration-300 ease-out will-change-transform"
           style={{ transform: `translateX(${pillX}px)` }}
         >
-          <GlassLayer depth={5} strength={8} chromaticAberration={1} blur={4} />
+          <GlassLayer tokens={GLASS_COMMON} />
         </div>
       )}
 
+      {/* Link вместо button + router.push: навигация остаётся настоящей
+          ссылкой (доступна с клавиатуры, открывается в новой вкладке), а
+          префетч соседних табов Next делает сам — ручной router.prefetch
+          в эффекте больше не нужен. */}
       {TABS.map((tab, index) => (
-        <button
+        <Link
           key={tab.label}
-          type="button"
-          onClick={() => router.push(tab.href)}
+          href={tab.href}
           ref={(el) => {
             itemRefs.current[index] = el;
           }}
@@ -95,10 +93,11 @@ export default function BottomNav() {
           <Image
             src={tab.icon}
             alt=""
-            className={`relative z-10 h-5 w-5 transition-opacity duration-300 ${index === activeIndex ? "" : "opacity-40"
-              }`}
+            className={`relative z-10 h-5 w-5 transition-opacity duration-300 ${
+              index === activeIndex ? "" : "opacity-40"
+            }`}
           />
-        </button>
+        </Link>
       ))}
     </nav>
   );

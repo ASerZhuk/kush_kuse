@@ -1,12 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, type ReactNode } from "react";
 import Image from "next/image";
 import Button from "@/components/ui/Button";
+import CardFields, { EMPTY_CARD, isCardFilled } from "@/components/CardFields";
 import Chip from "@/components/ui/Chip";
 import Eyebrow from "@/components/ui/Eyebrow";
 import Input from "@/components/ui/Input";
 import { useSubscription } from "@/components/SubscriptionContext";
+import { cardLast4 } from "@/lib/formatCard";
 import ArrowLeftIcon from "@/components/icons/ArrowLeftIcon";
 import CheckIcon from "@/components/icons/CheckIcon";
 import pen from "@/app/assets/pen.svg";
@@ -19,25 +21,85 @@ enum Step {
   Success,
 }
 
+/** Шаг, на который уводит стрелка «назад». Success её не показывает. */
+const PREVIOUS_STEP: Record<Step, Step> = {
+  [Step.Address]: Step.Address,
+  [Step.Card]: Step.Address,
+  [Step.Review]: Step.Card,
+  [Step.Success]: Step.Review,
+};
+
 const STEPS_COUNT = 3;
 
 const DATES = ["5 авг, вт", "7 авг, чт"];
 const DATES_FULL = ["вторник, 5 августа", "четверг, 7 августа"];
 const WINDOWS = ["10:00–14:00", "14:00–18:00"];
 
-const formatCardNumber = (value: string) =>
-  value
-    .replace(/\D/g, "")
-    .slice(0, 16)
-    .replace(/(.{4})/g, "$1 ")
-    .trim();
+const DEFAULT_ADDRESS = "Малая Бронная, 12";
 
-const formatExpiry = (value: string) => {
-  const digits = value.replace(/\D/g, "").slice(0, 4);
-  return digits.length > 2 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits;
-};
+/** Три точки-индикатора шага в шапке. */
+function StepDots({ step }: { step: Step }) {
+  return (
+    <div className="flex items-center justify-center gap-1">
+      {Array.from({ length: STEPS_COUNT }, (_, index) => (
+        <span
+          key={index}
+          className={`h-1.5 rounded-full transition-all duration-300 ${
+            index === step ? "w-4 bg-dark" : "w-1.5 bg-grey-200"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
 
-const formatCvc = (value: string) => value.replace(/\D/g, "").slice(0, 3);
+/** Карточка выбора адреса: рамка-градиент у выбранной, иконка слева,
+ * галочка/плюс справа. Отличаются только иконка и содержимое. */
+function AddressOption({
+  selected,
+  icon,
+  className,
+  onClick,
+  children,
+}: {
+  selected: boolean;
+  icon: ReactNode;
+  className: string;
+  onClick: () => void;
+  children: ReactNode;
+}) {
+  return (
+    <div className={`${className} rounded-3xl ${selected ? "bg-gradient-300 p-0.5" : ""}`}>
+      <div className="rounded-3xl bg-white">
+        <button
+          type="button"
+          onClick={onClick}
+          className="flex w-full items-center gap-4 rounded-3xl bg-grey p-4"
+        >
+          <div
+            className={`flex h-10 w-10 flex-none items-center justify-center rounded-2xl ${
+              selected ? "bg-gradient-300" : "bg-grey-50"
+            }`}
+          >
+            {icon}
+          </div>
+
+          {children}
+
+          {selected ? (
+            <div className="flex h-12 w-12 flex-none items-center justify-center rounded-4xl bg-grey-500 p-2.5">
+              <CheckIcon className="h-3 w-3 text-white" />
+            </div>
+          ) : (
+            <div className="flex h-12 w-12 flex-none items-center justify-center rounded-4xl bg-grey">
+              <Image src={plus} alt="" className="h-3 w-3" />
+            </div>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+}
 
 export default function Checkout() {
   const { activate } = useSubscription();
@@ -48,21 +110,16 @@ export default function Checkout() {
   const [otherAddress, setOtherAddress] = useState(false);
   const [street, setStreet] = useState("");
   const [apartment, setApartment] = useState("");
+  const [card, setCard] = useState(EMPTY_CARD);
 
-  const [cardNumber, setCardNumber] = useState("");
-  const [expiry, setExpiry] = useState("");
-  const [cvc, setCvc] = useState("");
-
-  const canContinue = !otherAddress || (street.trim() !== "" && apartment.trim() !== "");
-  const canAttachCard =
-    cardNumber.trim() !== "" && expiry.trim() !== "" && cvc.trim() !== "";
+  const canContinue =
+    !otherAddress || (street.trim() !== "" && apartment.trim() !== "");
 
   const addressSummary = otherAddress
     ? [street, apartment].filter(Boolean).join(", ")
-    : "Малая Бронная, 12";
-  const cardLast4 = cardNumber.replace(/\D/g, "").slice(-4);
+    : DEFAULT_ADDRESS;
 
-  const SUMMARY = [
+  const summary = [
     { label: "Рецепт", value: "Треска свежего улова · 76 г/день" },
     { label: "Дополнительно", value: "Молочная вода · Снеки из трески" },
     { label: "Адрес", value: addressSummary },
@@ -70,7 +127,7 @@ export default function Checkout() {
       label: "Доставка",
       value: `${DATES_FULL[date]} · ${WINDOWS[slot]}, дальше раз в две недели`,
     },
-    { label: "Карта", value: `···· ${cardLast4}` },
+    { label: "Карта", value: `···· ${cardLast4(card.number)}` },
     { label: "Первый месяц", value: "в подарок" },
     { label: "С 5 августа", value: "18 000 ₽/мес" },
   ];
@@ -87,22 +144,13 @@ export default function Checkout() {
             <Button
               variant="ghost"
               iconOnly
-              onClick={() => setStep(step === Step.Review ? Step.Card : Step.Address)}
+              onClick={() => setStep(PREVIOUS_STEP[step])}
             >
               <ArrowLeftIcon />
             </Button>
           )}
 
-          <div className="flex items-center justify-center gap-1">
-            {Array.from({ length: STEPS_COUNT }, (_, index) => (
-              <span
-                key={index}
-                className={`h-1.5 rounded-full transition-all duration-300 ${
-                  index === step ? "w-4 bg-dark" : "w-1.5 bg-grey-200"
-                }`}
-              />
-            ))}
-          </div>
+          <StepDots step={step} />
 
           <div className="h-12 w-12" />
         </div>
@@ -118,68 +166,26 @@ export default function Checkout() {
             Курьер предупредит за час.
           </p>
 
-          <div className={`mt-6 rounded-3xl ${otherAddress ? "" : "bg-gradient-300 p-0.5"}`}>
-            <div className="rounded-3xl bg-white">
-              <button
-                type="button"
-                onClick={() => setOtherAddress(false)}
-                className="flex w-full items-center gap-4 rounded-3xl bg-grey p-4"
-              >
-                <div
-                  className={`flex h-10 w-10 flex-none items-center justify-center rounded-2xl ${
-                    otherAddress ? "bg-grey-50" : "bg-gradient-300"
-                  }`}
-                >
-                  <CheckIcon className="h-3 w-3 text-dark" />
-                </div>
-
-                <div className="flex flex-1 flex-col text-left">
-                  <span className="text-body-m text-dark">Туда же, куда привозим сейчас</span>
-                  <span className="mt-1 text-caption text-grey-300">Малая Бронная, 12, кв.40</span>
-                </div>
-
-                {otherAddress ? (
-                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-4xl bg-grey">
-                    <Image src={plus} alt="" className="h-3 w-3" />
-                  </div>
-                ) : (
-                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-4xl bg-grey-500 p-2.5">
-                    <CheckIcon className="h-3 w-3 text-white" />
-                  </div>
-                )}
-              </button>
+          <AddressOption
+            className="mt-6"
+            selected={!otherAddress}
+            onClick={() => setOtherAddress(false)}
+            icon={<CheckIcon className="h-3 w-3 text-dark" />}
+          >
+            <div className="flex flex-1 flex-col text-left">
+              <span className="text-body-m text-dark">Туда же, куда привозим сейчас</span>
+              <span className="mt-1 text-caption text-grey-300">Малая Бронная, 12, кв.40</span>
             </div>
-          </div>
+          </AddressOption>
 
-          <div className={`mt-3 rounded-3xl ${otherAddress ? "bg-gradient-300 p-0.5" : ""}`}>
-            <div className="rounded-3xl bg-white">
-              <button
-                type="button"
-                onClick={() => setOtherAddress(true)}
-                className="flex w-full items-center gap-4 rounded-3xl bg-grey p-4"
-              >
-                <div
-                  className={`flex h-10 w-10 flex-none items-center justify-center rounded-2xl ${
-                    otherAddress ? "bg-gradient-300" : "bg-grey-50"
-                  }`}
-                >
-                  <Image src={pen} alt="" className="h-4 w-4" />
-                </div>
-
-                <span className="flex-1 text-left text-body-m text-dark">Другой адрес</span>
-
-                {otherAddress ? (
-                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-4xl bg-grey-500 p-2.5">
-                    <CheckIcon className="h-3 w-3 text-white" />
-                  </div>
-                ) : (
-                  <div className="flex h-12 w-12 flex-none items-center justify-center rounded-4xl bg-grey">
-                    <Image src={plus} alt="" className="h-3 w-3" />
-                  </div>
-                )}
-              </button>
-            </div>
-          </div>
+          <AddressOption
+            className="mt-3"
+            selected={otherAddress}
+            onClick={() => setOtherAddress(true)}
+            icon={<Image src={pen} alt="" className="h-4 w-4" />}
+          >
+            <span className="flex-1 text-left text-body-m text-dark">Другой адрес</span>
+          </AddressOption>
 
           {otherAddress && (
             <div className="mt-3 flex flex-col gap-3">
@@ -244,31 +250,7 @@ export default function Checkout() {
 
           <p className="mt-6 text-caption text-grey-300">Введите данные новой карты</p>
 
-          <Input
-            className="mt-3"
-            placeholder="0000 0000 0000 0000"
-            inputMode="numeric"
-            maxLength={19}
-            value={cardNumber}
-            onChange={(e) => setCardNumber(formatCardNumber(e.target.value))}
-          />
-
-          <div className="mt-3 flex gap-3">
-            <Input
-              placeholder="ММ/ГГ"
-              inputMode="numeric"
-              maxLength={5}
-              value={expiry}
-              onChange={(e) => setExpiry(formatExpiry(e.target.value))}
-            />
-            <Input
-              placeholder="CVC"
-              inputMode="numeric"
-              maxLength={3}
-              value={cvc}
-              onChange={(e) => setCvc(formatCvc(e.target.value))}
-            />
-          </div>
+          <CardFields className="mt-3" value={card} onChange={setCard} />
 
           <p className="mt-6 text-body text-grey-300">
             Платежи проводит ЮКасса, чек придёт на{" "}
@@ -279,7 +261,7 @@ export default function Checkout() {
           <Button
             variant="primary"
             className="mt-8"
-            disabled={!canAttachCard}
+            disabled={!isCardFilled(card)}
             onClick={() => setStep(Step.Review)}
           >
             Привязать карту
@@ -296,11 +278,11 @@ export default function Checkout() {
           </p>
 
           <div className="mt-6 rounded-3xl bg-grey px-6">
-            {SUMMARY.map((row, index) => (
+            {summary.map((row, index) => (
               <div
                 key={row.label}
                 className={`flex items-start justify-between gap-4 py-4 ${
-                  index < SUMMARY.length - 1 ? "border-b border-grey-100" : ""
+                  index < summary.length - 1 ? "border-b border-grey-100" : ""
                 }`}
               >
                 <span className="flex-none text-body-s text-grey-300">{row.label}</span>

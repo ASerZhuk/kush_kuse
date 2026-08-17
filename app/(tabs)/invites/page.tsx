@@ -5,7 +5,6 @@ import Button from "@/components/ui/Button";
 import Status from "@/components/ui/Status";
 import Toast from "@/components/ui/Toast";
 import ArrowLeftIcon from "@/components/icons/ArrowLeftIcon";
-import BottomNav from "@/components/BottomNav";
 
 const INVITES = [
   {
@@ -29,9 +28,17 @@ export default function Invites() {
     return () => clearTimeout(timeout);
   }, [toastVisible]);
 
+  // navigator.clipboard есть только в secure context (https/localhost) и может
+  // отказать по политике браузера. Без обработки промис падал необработанной
+  // ошибкой, а тост «скопировано» показался бы даже с пустым буфером.
   const shareInvite = async (code: string) => {
-    await navigator.clipboard.writeText(`Приглашение в Kosh Kusé: ${code}`);
-    setToastVisible(true);
+    if (!navigator.clipboard) return;
+    try {
+      await navigator.clipboard.writeText(`Приглашение в Kosh Kusé: ${code}`);
+      setToastVisible(true);
+    } catch {
+      // Копирование недоступно — тост не показываем.
+    }
   };
 
   return (
@@ -88,8 +95,6 @@ export default function Invites() {
           растёт не рекламой — доверием.
         </p>
       </div>
-
-      <BottomNav />
 
       {toastVisible && (
         <Toast

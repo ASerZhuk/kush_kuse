@@ -18,52 +18,65 @@ export default function InstallPrompt() {
   const [deferredPrompt, setDeferredPrompt] =
     useState<BeforeInstallPromptEvent | null>(null);
   const [isIOS, setIsIOS] = useState(false);
-  const [visible, setVisible] = useState(false);
+  // Скрыто, пока не проверили платформу: уже установленному приложению и
+  // тому, кто закрыл промо в этой сессии, показывать нечего.
+  const [suppressed, setSuppressed] = useState(true);
+
+  // Промо живёт только на входных экранах. Гасить его состоянием из эффекта
+  // при уходе не нужно — достаточно не рисовать компонент.
+  const onAllowedPath = ALLOWED_PATHS.includes(pathname);
 
   useEffect(() => {
-    if (!ALLOWED_PATHS.includes(pathname)) {
-      setVisible(false);
-      return;
-    }
+    if (!onAllowedPath) return;
 
-    const isStandalone =
-      window.matchMedia("(display-mode: standalone)").matches ||
-      (window.navigator as { standalone?: boolean }).standalone === true;
-    const dismissed = sessionStorage.getItem(DISMISSED_KEY);
+    // Платформенные API читаем только после монтирования: на сервере нет ни
+    // navigator, ни sessionStorage.
+    const syncPlatform = () => {
+      const isStandalone =
+        window.matchMedia("(display-mode: standalone)").matches ||
+        (window.navigator as { standalone?: boolean }).standalone === true;
 
-    if (isStandalone || dismissed) return;
+      if (isStandalone || sessionStorage.getItem(DISMISSED_KEY)) return false;
 
-    const iOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-      !("MSStream" in window);
-    setIsIOS(iOS);
-    if (iOS) setVisible(true);
+      setSuppressed(false);
+      setIsIOS(
+        /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window),
+      );
+      return true;
+    };
+
+    if (!syncPlatform()) return;
 
     const onBeforeInstallPrompt = (e: Event) => {
       e.preventDefault();
       setDeferredPrompt(e as BeforeInstallPromptEvent);
-      setVisible(true);
     };
     window.addEventListener("beforeinstallprompt", onBeforeInstallPrompt);
     return () =>
-      window.removeEventListener(
-        "beforeinstallprompt",
-        onBeforeInstallPrompt,
-      );
-  }, [pathname]);
+      window.removeEventListener("beforeinstallprompt", onBeforeInstallPrompt);
+  }, [onAllowedPath]);
 
   const dismiss = () => {
     sessionStorage.setItem(DISMISSED_KEY, "1");
-    setVisible(false);
+    setSuppressed(true);
   };
 
   const install = async () => {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
     await deferredPrompt.userChoice;
+    // Один и тот же prompt() нельзя вызвать дважды — событие израсходовано,
+    // и промо на этом исчезает.
     setDeferredPrompt(null);
-    setVisible(false);
   };
+
+  // В iOS нет beforeinstallprompt — там показываем инструкцию «Поделиться →
+  // На экран Домой». В остальных браузерах ждём событие, которое даёт
+  // нативный диалог установки. Условие выводится, а не хранится отдельным
+  // состоянием: иначе на iOS промо возвращалось при возврате на /home,
+  // а на Android — нет.
+  const visible =
+    onAllowedPath && !suppressed && (isIOS || deferredPrompt !== null);
 
   if (!visible) return null;
 

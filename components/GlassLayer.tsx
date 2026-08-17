@@ -2,6 +2,7 @@
 
 import { useLayoutEffect, useRef, useState } from "react";
 import { getDisplacementFilter } from "@/lib/liquidGlass";
+import { glassGeometry, type GlassTokens } from "@/lib/glass";
 
 type Props = {
   /** Радиус скругления родителя в px (для пилюли — половина высоты). */
@@ -14,6 +15,12 @@ type Props = {
   blur?: number;
   saturate?: number;
   brightness?: number;
+  /**
+   * Токены стиля из Figma. Если заданы, вытесняют depth/strength/
+   * chromaticAberration/blur: те выводятся из размера элемента, поэтому
+   * задавать их в пикселях руками на каждом вызове не нужно.
+   */
+  tokens?: GlassTokens;
 };
 
 /** Настоящий Firefox — движок Gecko (десктоп, Android). */
@@ -65,56 +72,105 @@ export default function GlassLayer({
   blur = 1,
   saturate = 1.6,
   brightness = 1.06,
+  tokens,
 }: Props) {
   const ref = useRef<HTMLDivElement>(null);
   const [filter, setFilter] = useState<string>();
+  const [isWithinViewport, setIsWithinViewport] = useState(true);
 
   useLayoutEffect(() => {
     const el = ref.current;
     const parent = el?.parentElement;
     if (!el || !parent) return;
 
-    if (!supportsBackdropFilterUrl()) {
-      // Раньше здесь стояли захардкоженные blur(12px) saturate(1.8) —
-      // пропы blur/saturate/brightness сюда не долетали вообще, поэтому их
-      // подкрутка на странице никак не влияла на Safari. Смещения и цветной
-      // аберрации тут всё равно не будет: backdrop-filter умеет только
-      // стандартные функции (blur, saturate, brightness...), а не произвольный
-      // SVG-фильтр с раздельным сдвигом каналов — это ограничение WebKit,
-      // а не то, что можно докрутить пропом.
-      // ×1.5 (было ×3 = 12px при blur=4). Тяжёлый блюр здесь двойная цена:
-      // сильнее размывает деталь ЗА кромкой линзы (в Chromium это скрывает
-      // displacement-фильтр, тут прятать нечего) и дороже перерисовывается
-      // каждый кадр скролла на Firefox/Safari — просили снизить оба сразу.
-      setFilter(`blur(${blur * 1.5}px) saturate(${saturate}) brightness(${brightness})`);
-      return;
-    }
+    const supportsUrl = supportsBackdropFilterUrl();
+
+    /* Chromium подмешивает фон браузера в backdrop-filter, если стеклянный
+       элемент частично выходит за visual viewport. На экране это выглядит
+       как серая полоса, втянутая внутрь линзы. Пока элемент пересекает край,
+       оставляем заливку, фаску и тень, но не просим браузер преломлять пиксели
+       за пределами страницы. */
+    const updateViewportState = () => {
+      const rect = parent.getBoundingClientRect();
+      const viewport = window.visualViewport;
+      const top = viewport?.offsetTop ?? 0;
+      const left = viewport?.offsetLeft ?? 0;
+      const right = left + (viewport?.width ?? document.documentElement.clientWidth);
+      const bottom = top + (viewport?.height ?? document.documentElement.clientHeight);
+
+      setIsWithinViewport(
+        rect.top >= top &&
+          rect.left >= left &&
+          rect.bottom <= bottom &&
+          rect.right <= right,
+      );
+    };
 
     const redraw = () => {
+      if (!supportsUrl) {
+        // Раньше здесь стояли захардкоженные blur(12px) saturate(1.8) —
+        // пропы blur/saturate/brightness сюда не долетали вообще, поэтому их
+        // подкрутка на странице никак не влияла на Safari. Смещения и цветной
+        // аберрации тут всё равно не будет: backdrop-filter умеет только
+        // стандартные функции (blur, saturate, brightness...), а не произвольный
+        // SVG-фильтр с раздельным сдвигом каналов — это ограничение WebKit,
+        // а не то, что можно докрутить пропом.
+        // Frost из Figma уже задан в пикселях, поэтому переносим его без
+        // дополнительного множителя и не усиливаем размытие в fallback.
+        const fallbackBlur = tokens?.frost ?? blur;
+        setFilter(
+          `blur(${fallbackBlur}px) saturate(${saturate}) brightness(${brightness})`,
+        );
+        return;
+      }
+
       const rect = parent.getBoundingClientRect();
       const width = Math.round(rect.width);
       const height = Math.round(rect.height);
       if (!width || !height) return;
+
+      const geometry = tokens
+        ? glassGeometry(tokens, Math.min(width, height))
+        : { depth, strength, chromaticAberration, blur };
 
       const r = radius ?? height / 2;
       const url = getDisplacementFilter({
         width,
         height,
         radius: r,
-        depth,
-        strength,
-        chromaticAberration,
+        depth: geometry.depth,
+        strength: geometry.strength,
+        chromaticAberration: geometry.chromaticAberration,
       });
       setFilter(
-        `blur(${blur / 2}px) url('${url}') blur(${blur}px) brightness(${brightness}) saturate(${saturate})`,
+        `url('${url}') blur(${geometry.blur}px) brightness(${brightness}) saturate(${saturate})`,
       );
     };
 
+    updateViewportState();
     redraw();
-    const observer = new ResizeObserver(redraw);
+    const observer = new ResizeObserver(() => {
+      updateViewportState();
+      redraw();
+    });
     observer.observe(parent);
-    return () => observer.disconnect();
-  }, [radius, depth, strength, chromaticAberration, blur, saturate, brightness]);
+
+    const intersectionObserver = new IntersectionObserver(updateViewportState, {
+      threshold: [0.999, 1],
+    });
+    intersectionObserver.observe(parent);
+    window.visualViewport?.addEventListener("resize", updateViewportState);
+    window.visualViewport?.addEventListener("scroll", updateViewportState);
+
+    return () => {
+      observer.disconnect();
+      intersectionObserver.disconnect();
+      window.visualViewport?.removeEventListener("resize", updateViewportState);
+      window.visualViewport?.removeEventListener("scroll", updateViewportState);
+    };
+    // tokens приходит модульной константой (GLASS_COMMON), поэтому по ссылке
+    // стабилен и эффект от него не перезапускается на каждый рендер.
+  }, [radius, depth, strength, chromaticAberration, blur, saturate, brightness, tokens]);
 
   return (
     <div
@@ -122,7 +178,7 @@ export default function GlassLayer({
       aria-hidden
       className="pointer-events-none absolute inset-0 z-0 rounded-[inherit]"
       style={
-        filter
+        filter && isWithinViewport
           ? // WebkitBackdropFilter обязателен: до Safari 18 (и на всех
             // iOS-браузерах, которые внутри тот же WebKit) свойство без
             // префикса игнорируется целиком, а React инлайн-стили сам не

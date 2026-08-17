@@ -1,8 +1,9 @@
 "use client";
 
-import { useEffect, useRef, useState, type ReactNode } from "react";
+import { type ReactNode } from "react";
 import { createPortal } from "react-dom";
 import Image, { type StaticImageData } from "next/image";
+import { useDisclosure } from "@/lib/useDisclosure";
 import logoMark from "@/app/assets/Logo.svg";
 import closeIcon from "@/app/assets/close.svg";
 
@@ -19,22 +20,7 @@ export default function StoryModal({
   body: string;
   children: ReactNode;
 }) {
-  const [mounted, setMounted] = useState(false);
-  const [visible, setVisible] = useState(false);
-  const closeTimeout = useRef<ReturnType<typeof setTimeout>>(undefined);
-
-  const open = () => {
-    clearTimeout(closeTimeout.current);
-    setMounted(true);
-    requestAnimationFrame(() => requestAnimationFrame(() => setVisible(true)));
-  };
-
-  const close = () => {
-    setVisible(false);
-    closeTimeout.current = setTimeout(() => setMounted(false), TRANSITION_MS);
-  };
-
-  useEffect(() => () => clearTimeout(closeTimeout.current), []);
+  const { mounted, visible, open, close } = useDisclosure(TRANSITION_MS);
 
   return (
     <>
@@ -50,6 +36,9 @@ export default function StoryModal({
       {mounted &&
         createPortal(
           <div
+            role="dialog"
+            aria-modal="true"
+            aria-label={title}
             onClick={close}
             className={`fixed inset-0 z-50 flex flex-col bg-gradient-300 transition-[opacity,transform] duration-350 ease-[cubic-bezier(0.22,1,0.36,1)] ${
               visible ? "scale-100 opacity-100" : "scale-90 opacity-0"

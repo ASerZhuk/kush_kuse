@@ -1,11 +1,8 @@
 import PetProfileForm from "./PetProfileForm";
+import { readNameParam } from "@/lib/searchParams";
 
 export default async function PetProfile({
   searchParams,
-}: {
-  searchParams: Promise<{ name?: string }>;
-}) {
-  const { name = "" } = await searchParams;
-
-  return <PetProfileForm petName={name} />;
+}: PageProps<"/invite/profile_form">) {
+  return <PetProfileForm petName={readNameParam(await searchParams)} />;
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import GlassLayer from "@/components/GlassLayer";
+import { GLASS_COMMON } from "@/lib/glass";
 import type { ButtonProps, ButtonVariant } from "@/types/button";
 
 const variantClasses: Record<ButtonVariant, string> = {
@@ -18,62 +19,60 @@ const variantClasses: Record<ButtonVariant, string> = {
   ghost: "gap-2 text-dark active:opacity-60",
 };
 
-export default function Button({
-  variant = "secondary",
-  href,
-  iconOnly = false,
-  fullWidth = true,
-  subtitle,
-  className = "",
-  children,
-  ...props
-}: ButtonProps) {
+export default function Button(props: ButtonProps) {
+  const {
+    variant = "secondary",
+    iconOnly = false,
+    fullWidth = true,
+    subtitle,
+    className = "",
+    children,
+    ...rest
+  } = props;
+
   const hasSubtitle = Boolean(subtitle);
   const sizing = iconOnly
     ? "h-12 w-12 flex-none"
     : fullWidth
       ? `mx-auto w-full max-w-75 ${hasSubtitle ? "" : "h-12"}`
       : `flex-1 ${hasSubtitle ? "" : "h-12"}`;
-  // Пилюля с подзаголовком высоту не фиксирует — её задают отступы
-  // (16 сверху/снизу, 10 по бокам), а не жёсткий h-16.
-  const padding = iconOnly ? "" : hasSubtitle ? "px-2.5 py-2.5" : "px-4 py-2.5";
+  // Пилюля с подзаголовком высоту не фиксирует: 6px сверху/снизу дают
+  // макетные 50px вместе с двумя строками, 10px по бокам сохраняют ширину.
+  const padding = iconOnly ? "" : hasSubtitle ? "px-2.5 py-1.5" : "px-4 py-2.5";
 
   const glass = variant === "primary";
   const classes = `relative flex ${sizing} items-center justify-center rounded-4xl ${glass ? "overflow-hidden" : ""} ${padding} text-body-m transition-colors active:text-grey-400 ${variantClasses[variant]} ${className}`;
 
   const inner = (
     <>
+      {/* saturate/brightness близко к нейтральным: в макете подложка внутри
+          пилюли по тону совпадает с карточкой, а не подкрашивается. */}
       {glass && (
-        <GlassLayer
-          depth={5}
-          strength={6}
-          chromaticAberration={1}
-          blur={3}
-          saturate={1}
-          brightness={1}
-        />
+        <GlassLayer tokens={GLASS_COMMON} saturate={1.15} brightness={1} />
       )}
       <span className="relative z-10 flex flex-col items-center justify-center gap-0.5">
         <span className={`flex items-center justify-center ${hasSubtitle ? "" : "gap-[inherit]"}`}>
           {children}
         </span>
+        {/* Grey/Grey 400 из макета (Selection colors), а не dark/50 */}
         {subtitle && (
-          <span className="text-caption-s uppercase text-dark/50">{subtitle}</span>
+          <span className="text-caption-s uppercase text-grey-400">{subtitle}</span>
         )}
       </span>
     </>
   );
 
-  if (href) {
+  if (rest.href !== undefined) {
+    const { href, ...anchorProps } = rest;
     return (
-      <Link href={href} className={classes}>
+      <Link href={href} className={classes} {...anchorProps}>
         {inner}
       </Link>
     );
   }
 
   return (
-    <button type="button" className={classes} {...props}>
+    <button type="button" className={classes} {...rest}>
       {inner}
     </button>
   );

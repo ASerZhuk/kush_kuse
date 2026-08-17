@@ -1,12 +1,11 @@
 import Button from "@/components/ui/Button";
 import Eyebrow from "@/components/ui/Eyebrow";
+import { readNameParam } from "@/lib/searchParams";
 
 export default async function Ration({
   searchParams,
-}: {
-  searchParams: Promise<{ name?: string }>;
-}) {
-  const { name = "" } = await searchParams;
+}: PageProps<"/invite/ration">) {
+  const name = readNameParam(await searchParams);
 
   return (
     <div className="flex min-h-full flex-1 flex-col bg-white px-margin pt-62.5">

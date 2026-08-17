@@ -198,6 +198,28 @@
   .backdrop-glass {
     --glass-rgb: 255, 255, 255;
     --glass-tint: 0.28;
+    /* Light из стиля Common в Figma: −45°, источник сверху слева.
+       Здесь он хранится сразу как угол CSS-градиента: θ_figma + 180°
+       (−45 → 135). Формула откалибрована по единственному известному
+       значению — если в макете повернуть свет и картинка разойдётся,
+       менять надо её, а не значения ниже. Дубль величины в
+       lib/glass.ts (GLASS_COMMON.lightAngle) неизбежен: та половина
+       кормит SVG-фильтр, эта — CSS-блики. */
+    --glass-light: 135deg;
+    /* Light intensity 80% из того же стиля Common. Как и угол, величина
+       продублирована из GLASS_COMMON, потому что фаска рисуется в CSS. */
+    --glass-light-intensity: 0.8;
+    /* Единичный вектор НА источник в экранных координатах (y вниз).
+       Из него считаются позиции бликов, поэтому достаточно поменять
+       --glass-light, и весь свет поедет согласованно. */
+    --glass-lx: calc(-1 * sin(var(--glass-light)));
+    --glass-ly: calc(cos(var(--glass-light)));
+    /* Для диагонального света ±45° коэффициент sqrt(2) / 2 переводит
+       единичный вектор точно в пару противоположных углов элемента. */
+    --glass-source-x: calc(50% + var(--glass-lx) * 70.710678%);
+    --glass-source-y: calc(50% + var(--glass-ly) * 70.710678%);
+    --glass-reflect-x: calc(50% - var(--glass-lx) * 70.710678%);
+    --glass-reflect-y: calc(50% - var(--glass-ly) * 70.710678%);
     isolation: isolate;
     background-color: rgba(var(--glass-rgb), var(--glass-tint));
     /* Только внешняя тень: фаска живёт на ::after, иначе её закрашивает
@@ -208,19 +230,26 @@
   }
   /* Вариант для мелких элементов (активная иконка 48px). Заливка слабее,
      чем у панели: при плотной заливке круг превращается в серое пятно.
-     Затенение только сверху и снизу — по всем четырём сторонам оно на
-     круге 48px замыкается в тёмное кольцо. */
+     Угловые пятна компактнее, чтобы на круге не замыкаться в светлое кольцо. */
   .backdrop-glass-sm {
     --glass-tint: 0.2;
     box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
   }
   .backdrop-glass-sm::after {
-    box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.85),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.65),
-      inset 0 3px 4px -3px rgba(0, 0, 0, 0.075),
-      inset 0 -3px 4px -3px rgba(0, 0, 0, 0.045);
+    background:
+      radial-gradient(
+        88% 88% at var(--glass-source-x) var(--glass-source-y),
+        rgba(255, 255, 255, 0.78) 0%,
+        rgba(255, 255, 255, 0.2) 30%,
+        rgba(255, 255, 255, 0) 64%
+      ),
+      radial-gradient(
+        88% 88% at var(--glass-reflect-x) var(--glass-reflect-y),
+        rgba(255, 255, 255, 0.42) 0%,
+        rgba(255, 255, 255, 0.1) 32%,
+        rgba(255, 255, 255, 0) 64%
+      );
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
   }
   /* Серое стекло для secondary: та же оптика, но заливка остаётся серой,
      чтобы кнопка не сливалась с primary. */
@@ -231,21 +260,83 @@
        с основным по акценту */
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.07);
   }
-  /* Стекло без заливки, без блика и без теневой обводки для primary-кнопки:
-     только преломление (blur + displacement из GlassLayer) — на прозрачном
-     объекте drop-shadow читается как грязное пятно, поэтому вместо тени
-     тонкая светлая обводка обозначает край. */
+  /* Линза primary-кнопки. Раньше здесь не было ни заливки, ни тени — только
+     1px обводка, и на белом фоне кнопка читалась плоской рамкой: преломлять
+     однородно белый фон нечего, а на iOS Safari displacement не работает
+     вообще (см. GlassLayer). Поэтому объём даёт сам материал: почти
+     прозрачная заливка + направленная кромка + отрыв от поверхности. */
   .backdrop-glass-clear {
-    --glass-tint: 0;
-    background-color: transparent;
-    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.5);
+    /* Gradient 200 из макета — не геометрический градиент, а сплошной
+       #999999 с opacity 4%. Светотеневой профиль добавляет отдельно Glass. */
+    --glass-rgb: 153, 153, 153;
+    --glass-tint: 0.04;
+    /* Drop shadow из стиля Common: X0 Y4, blur 11.1, spread 0,
+       #4C4C4C 5%. Верхний inset-слой из --shadow-button здесь не используем:
+       он подсвечивал всю верхнюю кромку вопреки направлению света −45°.
+       «Show behind transparent areas» в макете снят — внешний box-shadow в
+       CSS так себя и ведёт, сквозь прозрачную заливку не проступает. */
+    box-shadow: 0 4px 11.1px rgba(76, 76, 76, 0.05);
   }
-  .backdrop-glass-clear::after {
-    background: none;
+  /* Внутренняя светотень самого Glass. Это не часть Gradient 200: заливка
+     выше остаётся ровной #999/4%. При −45° рядом с яркой верхней левой
+     фаской поверхность слегка темнее, а к нижнему правому углу собирается
+     мягкий отражённый свет. Коэффициенты умножены на макетные Light 80%. */
+  .backdrop-glass-clear::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    border-radius: inherit;
+    pointer-events: none;
+    background: linear-gradient(
+      var(--glass-light),
+      rgba(25, 25, 25, calc(var(--glass-light-intensity) * 0.0175)) 0%,
+      rgba(25, 25, 25, 0) 48%,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.275)) 100%
+    );
   }
-  /* Купольный блик: вытянутое световое пятно ближе к верху + отражённый
-     подсвет снизу. Именно пятно, а не равномерная засветка, читается как
-     выпуклая поверхность. */
+  /* Двойной класс, а не .backdrop-glass-clear::after: базовый
+     .backdrop-glass::after объявлен ниже по файлу с той же специфичностью и
+     иначе перекрывает переопределение. */
+  /* Свет из макета: Light −45°, источник сверху слева. Яркость и ширина
+     пиков ниже откалиброваны по эталонной фаске на чёрном фоне. */
+  .backdrop-glass.backdrop-glass-clear::after {
+    /* В эталоне максимум блика приходится на нормаль скругления: узкая яркая
+       дуга в верхнем левом углу и отражённая дуга в нижнем правом. Прямые
+       участки и два остальных угла остаются слабым нейтральным контуром.
+       Маска оставляет от кругового градиента только кольцо толщиной 1px. */
+    box-sizing: border-box;
+    padding: 1px;
+    background: conic-gradient(
+      from calc(var(--glass-light) - 135deg),
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.14)) 0deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.14)) 90deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.48)) 96deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.9)) 100deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.62)) 104deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.2)) 110deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.14)) 116deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.14)) 270deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.54)) 276deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.98)) 280deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.7)) 284deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.24)) 290deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.16)) 296deg,
+      rgba(255, 255, 255, calc(var(--glass-light-intensity) * 0.14)) 360deg
+    );
+    -webkit-mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    -webkit-mask-composite: xor;
+    mask:
+      linear-gradient(#000 0 0) content-box,
+      linear-gradient(#000 0 0);
+    mask-composite: exclude;
+    box-shadow: none;
+  }
+  /* Базовый направленный свет: локальный блик со стороны источника и более
+     слабое отражение в противоположном углу. Центр стекла и остальные две
+     стороны остаются чистыми. */
   .backdrop-glass::after {
     content: "";
     position: absolute;
@@ -255,42 +346,77 @@
     pointer-events: none;
     background:
       radial-gradient(
-        58% 62% at 50% 8%,
-        rgba(255, 255, 255, 0.72) 0%,
-        rgba(255, 255, 255, 0.22) 45%,
-        rgba(255, 255, 255, 0) 78%
+        30% 110% at var(--glass-source-x) var(--glass-source-y),
+        rgba(255, 255, 255, 0.78) 0%,
+        rgba(255, 255, 255, 0.24) 30%,
+        rgba(255, 255, 255, 0) 66%
       ),
       radial-gradient(
-        70% 50% at 50% 104%,
-        rgba(255, 255, 255, 0.4) 0%,
-        rgba(255, 255, 255, 0) 72%
-      ),
-      /* свет, собравшийся на боковых скруглениях */
-      radial-gradient(
-        26% 78% at 0% 50%,
-        rgba(255, 255, 255, 0.55) 0%,
-        rgba(255, 255, 255, 0) 76%
-      ),
-      radial-gradient(
-        26% 78% at 100% 50%,
-        rgba(255, 255, 255, 0.55) 0%,
-        rgba(255, 255, 255, 0) 76%
-      ),
-      linear-gradient(
-        160deg,
-        rgba(255, 255, 255, 0.2) 0%,
-        rgba(255, 255, 255, 0) 40%
+        30% 110% at var(--glass-reflect-x) var(--glass-reflect-y),
+        rgba(255, 255, 255, 0.42) 0%,
+        rgba(255, 255, 255, 0.12) 32%,
+        rgba(255, 255, 255, 0) 66%
       );
-    /* Фаска поверх бликов: inset-тень рисуется над собственным фоном
-       элемента, поэтому здесь она не тонет и повторяет border-radius. */
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+  /* Выключенная кнопка — сплошная Grey/Grey 100 и никакого стекла: блик на
+     плоской заливке читается как «кнопка всё-таки активная». Тройной селектор
+     нужен, чтобы перебить .backdrop-glass.backdrop-glass-clear::after
+     независимо от порядка правил. */
+  .backdrop-glass.backdrop-glass-clear:disabled::after {
+    background: none;
+    box-shadow: none;
+  }
+  .backdrop-glass.backdrop-glass-clear:disabled::before {
+    background: none;
+  }
+  /* Панель нижней навигации. Заливка слабее базовой (0.28 → 0.22): бар лежит
+     поверх контента, и чем он прозрачнее, тем сильнее читается преломление
+     под ним. Потерянный контраст возвращают кромка и более глубокая тень. */
+  .backdrop-glass-bar {
+    --glass-tint: 0.22;
     box-shadow:
-      inset 0 1px 0 rgba(255, 255, 255, 1),
-      inset 0 -1px 0 rgba(255, 255, 255, 0.9),
-      inset 0 0 0 1px rgba(255, 255, 255, 0.55),
-      inset 0 5px 6px -5px rgba(0, 0, 0, 0.1),
-      inset 0 -5px 6px -5px rgba(0, 0, 0, 0.07),
-      inset 7px 0 8px -7px rgba(0, 0, 0, 0.075),
-      inset -7px 0 8px -7px rgba(0, 0, 0, 0.075);
+      0 10px 30px -8px rgba(25, 25, 25, 0.22),
+      0 2px 8px -3px rgba(25, 25, 25, 0.14);
+  }
+  .backdrop-glass.backdrop-glass-bar::after {
+    background:
+      radial-gradient(
+        24% 110% at var(--glass-source-x) var(--glass-source-y),
+        rgba(255, 255, 255, 0.82) 0%,
+        rgba(255, 255, 255, 0.26) 30%,
+        rgba(255, 255, 255, 0) 66%
+      ),
+      radial-gradient(
+        24% 110% at var(--glass-reflect-x) var(--glass-reflect-y),
+        rgba(255, 255, 255, 0.46) 0%,
+        rgba(255, 255, 255, 0.13) 32%,
+        rgba(255, 255, 255, 0) 66%
+      );
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+  }
+  /* Активный таб. Единственное место, где заливка намеренно плотная: пилюля
+     лежит на стекле бара, а не на контенте, и без своего тела она на нём
+     теряется. */
+  .backdrop-glass-pill {
+    --glass-tint: 0.45;
+    box-shadow: 0 3px 10px -3px rgba(25, 25, 25, 0.24);
+  }
+  .backdrop-glass.backdrop-glass-pill::after {
+    background:
+      radial-gradient(
+        88% 88% at var(--glass-source-x) var(--glass-source-y),
+        rgba(255, 255, 255, 0.86) 0%,
+        rgba(255, 255, 255, 0.28) 30%,
+        rgba(255, 255, 255, 0) 64%
+      ),
+      radial-gradient(
+        88% 88% at var(--glass-reflect-x) var(--glass-reflect-y),
+        rgba(255, 255, 255, 0.48) 0%,
+        rgba(255, 255, 255, 0.12) 32%,
+        rgba(255, 255, 255, 0) 64%
+      );
+    box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
   }
   .bg-gradient-toast-success {
     background-image: var(--gradient-toast-success);
